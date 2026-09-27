@@ -53,6 +53,9 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./notebooks:/app/notebooks
+      - ./scripts:/app/scripts
+      - ./docs:/app/docs
+      - ./dashboard:/app/dashboard
       - ./project_config.yaml:/app/project_config.yaml:ro
       - ./data:/app/data
       - ./outputs:/app/outputs

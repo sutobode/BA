@@ -177,14 +177,4 @@ Tải dữ liệu theo `README.md` → mục *Dữ liệu*. Kiểm tra SHA-256 p
 
 ## 9. Trạng thái dự án (cập nhật 2026-09-27)
 
-| Hạng mục | Trạng thái |
-|---|---|
-| Spec, plan, code spec, decision log, traceability | Hoàn tất v1.1 |
-| Data tải + profiling (T1.2 phần tải, T1.3) | Xong; script tải tự động (`download_raw`) chưa code |
-| Scaffold (T1.1) | Xong: `config`, `contracts`, `compute_eim`, `incremental_lift`, `break_even_p`, CLI `validate-config` |
-| Test | 70 test: 39 pass, 31 xfail chờ implement (tất cả chờ vì `NotImplementedError`) |
-| Đáp án test | Đã kiểm chứng bằng reference implementation trên data thật (Code Spec §3.1) |
-| Quyết định | Tất cả đã chốt (D10/D11, D16, D22, D26 — decision log §2b) |
-| Docker | `Dockerfile`, `docker-compose.yml`: test / pipeline / dashboard / notebook — đã build và chạy được |
-| Build tiếp | `docs/goal_prompt_build_topic1.md` |
-| Việc tiếp theo | M1: T1.2 `download_raw` → T2.1 cleaning; M2: T2.5–T2.7; M3: T2.8 |
+Pipeline hoàn chỉnh, đã chạy trên data thật trong Docker; test set đã được đánh giá **một lần** (không đánh giá lại). 79 test pass, 0 stub. Deliverables: xem bảng *Deliverables* trong `README.md` và `docs/traceability_matrix_topic1.md`. Kết quả chính: `docs/executive_brief.pdf`, `docs/model_analysis_card.md`.

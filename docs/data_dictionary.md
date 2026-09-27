@@ -1,6 +1,8 @@
 # Data Dictionary — Topic 1 (v0)
 
-Trạng thái: **v0**. Phần raw đã hoàn chỉnh từ profiling. Phần derived lấy theo Code Spec §5; M1 hoàn thiện ở T2.2 (điền `missing_rate` thực tế sau khi pipeline chạy). Nguồn chuẩn cho tên và kiểu: `src/retail_targeting/contracts.py`.
+Trạng thái: **v1 (final, 2026-09-27)**. Missing rate đo từ output pipeline (`data/interim/lines.parquet`, `data/processed/customer_snapshots.parquet`). Nguồn chuẩn cho tên và kiểu: `src/retail_targeting/contracts.py`.
+
+Missing rate thực tế sau cleaning: `description` 0.41% dòng; `customer_id` 22.76% dòng (giữ ở line level, loại khỏi orders/snapshots); trong `customer_snapshots` chỉ có `avg_interpurchase_days` thiếu (45.66% — khách có 1 order trong cửa sổ, được impute median train trong pipeline model), mọi cột khác 0%.
 
 `leakage_risk`: **none** = có trước T0 · **target** = nhãn/outcome · **post-T0** = chỉ được dùng cho outcome.
 

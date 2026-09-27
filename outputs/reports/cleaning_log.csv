@@ -1,0 +1,11 @@
+rule_id,description,rows_before,rows_after,rows_affected,value_affected,customers_affected
+CR-07,exact duplicate rows removed,1044848,1033036,11812,54228.42,1594
+CR-08,missing/invalid invoice date -> excluded/invalid_date,1033036,1033036,0,0.00,0
+CR-05,bad-debt adjustment invoice (prefix A) -> excluded/bad_debt_adjustment,1033036,1033030,6,-147614.08,0
+CR-05b,"non-product stock code (postage, fees, manual, vouchers ...) -> non_product",1033030,1027235,5795,75748.71,1119
+CR-01/02,cancellation invoice with positive quantity -> excluded/invalid_quantity,1027235,1027235,0,0.00,0
+CR-01/02,cancellation/return invoice (prefix C) -> adjustment,1027235,1009320,17915,-716462.57,2445
+CR-04,negative quantity without cancellation (stock adjustment) -> excluded/stock_adjustment,1009320,1005929,3391,0.00,0
+CR-05c,price <= 0 -> excluded/zero_price,1005929,1003357,2572,0.00,43
+CR-06,missing customer id -> excluded/missing_customer,1003357,776596,226761,2575278.90,0
+CR-10,valid purchase line -> purchase,776596,0,776596,17068582.74,5852

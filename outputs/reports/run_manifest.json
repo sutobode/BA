@@ -1,0 +1,211 @@
+{
+ "stages": {
+  "clean": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "data/interim/lines.parquet": "9E9413DA3B19F1A965BB06DBB85F2C3928978DD5B1A2ACB195542A65C6C45DFA",
+    "data/interim/orders.parquet": "7F0EA73344F1251DDF4FE919FE3DCA4C018BAB2A19253890C94601CF1DD67C4A",
+    "outputs/reports/data_quality_report.md": "00E1AE05BC434A4A0D462A05AA323F30E598425E4830A100C66222E52E329E59"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:30+00:00"
+  },
+  "evaluate": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/customer_predictions.csv": "18BAD88C043AB24167526106AFB6F6E9CA24902ED8741E8CCCA722EE30B5621E",
+    "outputs/tables/metrics_by_group_validation.csv": "304B85B426AC214BFD34E3D3F25E2BF3873BD8014ED3B3061C96484598164BF7"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:38+00:00"
+  },
+  "evaluate_test": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/calibration_in_the_large_test.csv": "D4E4DD460C293E1DA8413CB8083D57726DB4125AB26619FB8E1E03CA566B56FE",
+    "outputs/tables/customer_predictions.csv": "F525BA0E3DAAE7793B0B928EE0C7E2BD5DFBE69BBC522386ED031F105FC119BB",
+    "outputs/tables/metrics_by_group_test.csv": "7AB1DD0399B3A9250B5E509825A47F2D52C85E8D16599B7098E3FB1B6F5228C3",
+    "outputs/tables/model_metrics_test.csv": "D0EE34B971AA29A9AD5BD159D26AAC548B526D30042A9768BD763260785D26F3"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:46:41+00:00"
+  },
+  "ingest": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "data/interim/transactions_raw.parquet": "AD346DC0E5B6E99A8E8013ED917BAFCDA2905574C822F6812D15A18096176BFF"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:24+00:00"
+  },
+  "sensitivity_test": {
+   "config_hash": "944aa5d6780f48f78c453a8a76ce7f99b8eb4947313cfcbc36d82ababda9dd34",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/sensitivity_break_even.csv": "FC6D336ED60DAF199907D439F0C114F0FF424D3907E9D6EC0A3D257AEC9A2C3C",
+    "outputs/tables/sensitivity_calibration_shift.csv": "33EBED254CF119478712AD831CFB41F755001E82AD111572990E7EB9E6DB3222",
+    "outputs/tables/sensitivity_dominance.csv": "80F5ECB8D7DC0183C25142BD70AE294D4A173325D866E922DE170BD5B70AEFD6",
+    "outputs/tables/sensitivity_results.csv": "5F4649309A1C4A3198D6EA53A27EF279137F081DDEECDF1D416D194CA8B00035"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:50:34+00:00"
+  },
+  "sensitivity_validation": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/sensitivity_break_even.csv": "FC6D336ED60DAF199907D439F0C114F0FF424D3907E9D6EC0A3D257AEC9A2C3C",
+    "outputs/tables/sensitivity_calibration_shift.csv": "2B20CFE6748BD96716D7522E8B6A8E24428BF30008AFF0C73CFED5204C94B246",
+    "outputs/tables/sensitivity_dominance.csv": "47EFFF35DCB314F0BC2302E1B04DBB47819E7B5D7635DFCCF430E121163A31E1",
+    "outputs/tables/sensitivity_results.csv": "F85501E4565A0EC36A3B8F09163E54F9C7793ECB1EAE219E9D97CEB092AB7ABC"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:46:36+00:00"
+  },
+  "simulate_test": {
+   "config_hash": "20b35792deb36de6ecdd7d67d3684b9b39fdd2589ba988701833141a4884f0ee",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/break_even.csv": "531A709036BA7CC843A0A6A05FBA8C96179DA04990929159C622A175BE963956",
+    "outputs/tables/customer_targeting_table.csv": "F250C20C51DD30DE89CDB021AF8C7A7E374386354CFFE3F3646B67C843BA996D",
+    "outputs/tables/policy_comparison.csv": "6A1A7512BD54AC5ADEC6B761ACDBE38E78D0C0DE2F6AF662EF6585DB53D8736F",
+    "outputs/tables/scenario_results.csv": "C6852B861CA6C508EE9A8208316693ACCA5438984E23561D47629C612E5C1AA8",
+    "outputs/tables/value_concentration.csv": "3655C206617489E42DEBCD14F99668EF98C4ECF37C1E34ABDF88964A23A94703"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:51:30+00:00"
+  },
+  "simulate_validation": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "outputs/tables/break_even.csv": "9B7B3DC72F52754F2D30BD09488460D9FD93F871F7A89CEEEE4528F8832E234C",
+    "outputs/tables/customer_targeting_table.csv": "7FFED1CF98A652B40EC21E0CE38CC29810AC9BF6B87C6A52FDAAC468264F523F",
+    "outputs/tables/policy_comparison.csv": "5278EDBA6D32E46774A0CFF3E6D57030E16BCD5A8F1DB05B1C2BA3C63841F4AC",
+    "outputs/tables/scenario_results.csv": "F69E7D7E4714431037756E3351F992862D4785F45478BC59C8C79AD691D4F6B6",
+    "outputs/tables/value_concentration.csv": "2453D197B18EB15E614DD7582D95BCC9C9D50B40043C9E0DD2DE9D1F1A8CCDB0"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:50+00:00"
+  },
+  "snapshots": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "data/processed/customer_snapshots.parquet": "F259958D477DD5CE274AFB1E96DBC8CA6C6AA4E82B33B27A3E8973428B8D6616",
+    "outputs/models/rfm_cutoffs.json": "29FA8638E5CEB6EA49EB9905C78EA4322EFA32D9B82B4759CB0ABBBEDCF6F030",
+    "outputs/tables/cohort_summary.csv": "6C3419EDB5352D26209808C9CEE313A544173BF58E50E4536001D0F93C3726B6",
+    "outputs/tables/rfm_segments.csv": "94771CE7B0DE28853C8617DF47BF48FA12A982AE4508159D5A7F3AE3BDFAB076",
+    "outputs/tables/snapshot_summary.csv": "0FC238448ADAD50AD4484959A246E8045D90A07A4A9C43DA1960912511038807"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:34+00:00"
+  },
+  "train": {
+   "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+   "git_commit": null,
+   "outputs": {
+    "outputs/models/model_v0.joblib": "B686C9C810F953594D337A74D15A881D209D9F0A6863DA9B90B94C74EF6CE563",
+    "outputs/tables/calibration_results.csv": "4DA2A85F4943E70783619CD88938CF0BE703F7077B89A056F9683CF97CFE7ECC",
+    "outputs/tables/model_coefficients.csv": "C9D6ACDDF90C061F9FF6F4136F31A5AA675A242CDF0CEAD83C131A9F80B7E074",
+    "outputs/tables/model_metrics.csv": "294818AA2D9B26D9B1A7658C8A71793584482FB9E1D0FA7854874C5AA21AADB8"
+   },
+   "packages": {
+    "PyYAML": "6.0.2",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "pyarrow": "25.0.1",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "streamlit": "1.64.0"
+   },
+   "timestamp": "2026-09-27T16:45:37+00:00"
+  }
+ }
+}

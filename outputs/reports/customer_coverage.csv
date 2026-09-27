@@ -1,0 +1,69 @@
+dimension,value,rows,pct_missing_customer,pct_positive_revenue_missing_customer
+month,2009-12,44722,30.0657,16.8976
+month,2010-01,31234,29.1733,14.6436
+month,2010-02,29058,18.8588,8.5742
+month,2010-03,40985,20.4782,16.1192
+month,2010-04,33647,18.4801,12.7996
+month,2010-05,34908,16.3773,9.1032
+month,2010-06,39469,20.3248,15.0981
+month,2010-07,32992,17.0799,9.1050
+month,2010-08,32939,19.3145,13.3804
+month,2010-09,41607,16.0934,10.0557
+month,2010-10,58249,14.6440,11.0844
+month,2010-11,76584,21.5489,20.3397
+month,2010-12,41981,37.2240,30.5593
+month,2011-01,34900,37.9083,17.6440
+month,2011-02,27479,26.7149,14.6323
+month,2011-03,36439,24.4875,17.0526
+month,2011-04,29701,22.6019,12.7743
+month,2011-05,36782,22.0787,11.9514
+month,2011-06,36609,24.6743,13.2143
+month,2011-07,39267,30.5880,16.5878
+month,2011-08,35064,21.7317,15.0151
+month,2011-09,49861,18.8564,10.0096
+month,2011-10,59969,16.7437,10.0430
+month,2011-11,83343,22.9305,23.1178
+month,2011-12,25247,31.1483,18.9085
+country,Australia,1890,0.0000,0.0000
+country,Austria,938,0.0000,0.0000
+country,Bahrain,126,53.1746,56.4482
+country,Belgium,3110,0.0000,0.0000
+country,Bermuda,34,100.0000,100.0000
+country,Brazil,94,0.0000,0.0000
+country,Canada,228,0.0000,0.0000
+country,Channel Islands,1646,0.0000,0.0000
+country,Cyprus,1157,0.0000,0.0000
+country,Czech Republic,30,0.0000,0.0000
+country,Denmark,797,0.0000,0.0000
+country,EIRE,17667,9.3564,6.4054
+country,European Community,61,0.0000,0.0000
+country,Finland,1049,0.0000,0.0000
+country,France,14025,0.9127,0.4814
+country,Germany,17339,0.0000,0.0000
+country,Greece,663,0.0000,0.0000
+country,Hong Kong,360,100.0000,100.0000
+country,Iceland,222,0.0000,0.0000
+country,Israel,368,12.7717,8.0641
+country,Italy,1507,0.0000,0.0000
+country,Japan,565,0.0000,0.0000
+country,Korea,63,0.0000,0.0000
+country,Lebanon,58,22.4138,11.1095
+country,Lithuania,154,0.0000,0.0000
+country,Malta,299,0.0000,0.0000
+country,Netherlands,5137,0.0000,0.0000
+country,Nigeria,32,6.2500,0.0000
+country,Norway,1308,0.0000,0.0000
+country,Poland,527,0.0000,0.0000
+country,Portugal,2528,4.5095,1.2948
+country,RSA,169,27.2189,59.7500
+country,Saudi Arabia,10,0.0000,0.0000
+country,Singapore,346,0.0000,0.0000
+country,Spain,3754,0.0000,0.0000
+country,Sweden,1362,1.3950,0.3853
+country,Switzerland,3175,3.6850,0.6194
+country,Thailand,76,0.0000,0.0000
+country,USA,535,0.0000,0.0000
+country,United Arab Emirates,500,22.8000,17.0752
+country,United Kingdom,948321,24.4860,17.3535
+country,Unspecified,752,30.7181,21.2298
+country,West Indies,54,0.0000,0.0000

@@ -1,0 +1,58 @@
+{
+ "target": "repeat_purchase_90d",
+ "features": [
+  "recency_days",
+  "frequency_orders",
+  "monetary_net",
+  "aov",
+  "return_rate",
+  "tenure_days",
+  "active_months",
+  "avg_interpurchase_days",
+  "unique_products",
+  "total_units",
+  "orders_last_30d",
+  "t0_month_sin",
+  "t0_month_cos"
+ ],
+ "C": 0.01,
+ "class_weight": null,
+ "calibration": "sigmoid",
+ "train_dates": [
+  "2010-06-01",
+  "2010-07-01",
+  "2010-08-01",
+  "2010-09-01",
+  "2010-10-01",
+  "2010-11-01",
+  "2010-12-01",
+  "2011-01-01"
+ ],
+ "validation_dates": [
+  "2011-04-01",
+  "2011-05-01"
+ ],
+ "config_hash": "0f031db0a99bc26eb03ca77b1d650bffb68f65a8c33bf9fd80458d39c0e970aa",
+ "validation_metrics": {
+  "model": "logreg_raw",
+  "split": "validation",
+  "n": 6346,
+  "prevalence": 0.45761109360226915,
+  "pr_auc": 0.7454066789950045,
+  "roc_auc": 0.7450391013297094,
+  "brier": 0.20453502620345823,
+  "log_loss": 0.5956432772753925,
+  "mean_predicted": 0.38291722437144304,
+  "precision_at_0.05": 0.9716088328075709,
+  "recall_at_0.05": 0.10606060606060606,
+  "lift_at_0.05": 2.1232195774782525,
+  "precision_at_0.1": 0.9227129337539433,
+  "recall_at_0.1": 0.20144628099173553,
+  "lift_at_0.1": 2.016369241598665,
+  "precision_at_0.2": 0.8282111899133175,
+  "recall_at_0.2": 0.3619146005509642,
+  "lift_at_0.2": 1.8098581994455625
+ },
+ "n_train": 23987,
+ "n_val": 6346
+}

@@ -1,0 +1,14 @@
+feature,coefficient,odds_ratio_per_sd
+active_months,0.589984,1.803960
+t0_month_sin,-0.357010,0.699766
+tenure_days,0.166456,1.181112
+t0_month_cos,-0.162454,0.850055
+frequency_orders,0.144544,1.155513
+recency_days,-0.136492,0.872414
+unique_products,0.118943,1.126306
+aov,0.093035,1.097500
+monetary_net,0.088077,1.092073
+avg_interpurchase_days,-0.044764,0.956223
+total_units,0.044251,1.045244
+orders_last_30d,0.029516,1.029956
+return_rate,0.010563,1.010619

@@ -1,0 +1,3 @@
+lift_structure,n_points,share_D_gt_B,share_D_ge_C,share_D_gt_E,share_D_positive,share_D_targets_nobody,evaluation_split
+constant,1080,1.000000,1.000000,0.852778,0.660185,0.294444,test
+persuadable,1080,1.000000,1.000000,0.880556,0.301852,0.638889,test

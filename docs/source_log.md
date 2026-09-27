@@ -33,7 +33,7 @@ Mỗi lần tải lại, **thêm một dòng mới**, không sửa dòng cũ. N�
 | Orders | Chỉ khách có Customer ID; purchase 36,594 · adjustment 7,283 | — | Code Spec §3.1 |
 | Snapshots | Khách có ≥ 1 purchase trong 180 ngày trước T0; 16 T0 | 47,933 rows | SPEC §5 |
 
-Các số trên là số tham chiếu từ reference run. Pipeline chính thức phải ghi lại chúng vào `outputs/reports/` (cleaning_log, run_manifest) và cập nhật bảng này nếu khác.
+Các số trên đã được pipeline chính thức tái tạo chính xác (2026-09-27, Docker): `outputs/reports/cleaning_log.csv`, `reconciliation.csv` (3/3 PASS), `run_manifest.json`. Giá trị (£) bị ảnh hưởng theo rule: CR-07 £54,228 · CR-05 −£147,614 · CR-05b £75,749 · adjustment −£716,463 · CR-06 (không ID) £2,575,279 · purchase lines £17,068,583. Snapshot targeting (D29): loại thêm 16 customer-snapshot có monetary_net ≤ 0 ở test.
 
 ## 4. Joins
 

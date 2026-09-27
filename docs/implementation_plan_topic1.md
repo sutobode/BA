@@ -12,18 +12,16 @@
 
 ## 1. Tổng quan milestone
 
-### Trạng thái (cập nhật 2026-09-27)
+### Trạng thái (cập nhật 2026-09-27 — project hoàn thành)
 
-| Task | Trạng thái | Evidence |
+| Phạm vi | Trạng thái | Evidence |
 |---|---|---|
-| T1.1 Repo & env | ✅ Done | `pyproject.toml`, `requirements.txt`, `.venv`, pytest 39 pass / 31 xfail |
-| T1.2 Source & log | 🟡 Một phần: data đã tải, checksum và `docs/source_log.md` xong; `download_raw` chưa code | `docs/source_log.md` |
-| T1.3 Profiling | ✅ Done (script tạm ở `scripts/profiling/`; `quality.profile_raw` chưa code) | `docs/data_profile_topic1.md` |
-| T1.4 Framing | 🟡 Nội dung xong, chờ team sign-off | SPEC §1 |
-| T1.5 Window/split | ✅ Số liệu thật đã xác nhận (16 T0, kích thước từng split); chờ freeze D05–D07 | Code Spec §3.1 |
-| T1.6 Scenario draft | 🟡 `compute_eim`, `incremental_lift`, `break_even_p` + test xong; giá trị Proposed (D10/D11) | `decision/simulation.py` |
-| T2.2 Data dictionary | 🟡 v0 (raw đầy đủ) | `docs/data_dictionary.md` |
-| Còn lại | ⬜ Chưa bắt đầu | — |
+| T1.1–T1.6, T2.1–T2.8 (data, snapshots, split, skeletons) | ✅ Done | Số liệu khớp Code Spec §3.1; `tests/test_ingest|cleaning|snapshots|leakage|split|rfm.py` |
+| T3.1–T3.5 (baseline model, RFM, cohort) | ✅ Done | `model_metrics.csv`, `rfm_segments.csv`, `cohort_summary.csv` |
+| T4.1–T4.6 (calibration, policy A–E, targeting table) | ✅ Done | `calibration_results.csv`, `policy_comparison.csv`, `customer_targeting_table.csv` |
+| T5.1–T5.6 (sensitivity, test once, dashboard, card, brief) | ✅ Done | `sensitivity_*.csv`, `test_access_log.jsonl`, `dashboard/app.py`, `model_analysis_card.md`, `executive_brief.pdf` |
+| T6.1–T6.6 (README, clean rerun, tests, claim audit, checklist) | ✅ Done | Docker clean rerun; 79 tests pass; `traceability_matrix_topic1.md` |
+| T6.7 Presentation/demo | ⬜ Team (dùng dashboard + brief) | — |
 
 Thay đổi từ review v1 (`review_v1_topic1.md`): T4.4 phải chạy thêm **Policy E** và báo cáo `p*`; T5.1 phải chạy sensitivity theo **lift structure** (`constant` + `persuadable`), value cap và dịch calibration; T4.1 phải báo cáo calibration-in-the-large theo snapshot test (D25–D27).
 

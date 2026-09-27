@@ -1,0 +1,4 @@
+check,expected,actual,abs_diff,status
+raw value (after CR-07) == sum over line types,18855533.698,18855533.698,0.0,PASS
+orders value == purchase+adjustment lines of kept orders,16358592.706999999,16358592.707,1.862645149230957e-09,PASS
+rows: raw after CR-07 == lines,1033036.0,1033036.0,0.0,PASS

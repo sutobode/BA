@@ -27,12 +27,31 @@ Yêu cầu: Docker Desktop đang chạy. Tải data vào `data/raw/` trước (m
 
 ```bash
 docker compose build
-docker compose run --rm test                                   # pytest
+docker compose run --rm test                                   # pytest (79 tests)
 docker compose run --rm pipeline validate-config --require-scenarios
-docker compose run --rm pipeline run all                       # khi các stage đã được implement
+docker compose run --rm pipeline run all                       # ~2.5 min (first xlsx read ~1 min, then cached)
+docker compose run --rm pipeline run evaluate --include-test   # one-shot test evaluation (logged)
+docker compose run --rm pipeline run simulate                  # policies on test snapshots
+docker compose run --rm pipeline run sensitivity               # ~1 min
+docker compose run --rm pipeline check customer_targeting_table
 docker compose up dashboard                                    # http://localhost:8501
+docker compose --profile dev run --rm notebook python scripts/make_notebooks.py --execute
+docker compose --profile dev run --rm notebook python scripts/build_brief_pdf.py
 docker compose --profile dev up notebook                       # JupyterLab http://localhost:8888
 ```
+
+## Deliverables (capstone package)
+
+| Deliverable | File |
+|---|---|
+| Reproducible code / notebooks | `src/retail_targeting/`, `notebooks/01…09_*.ipynb`, this README |
+| Data dictionary + source log | `docs/data_dictionary.md`, `docs/source_log.md` |
+| Customer-level score table | `outputs/tables/customer_targeting_table.csv` |
+| Executive brief (≤ 2 pages) | `docs/executive_brief.pdf` (source `docs/executive_brief.md`) |
+| Dashboard (5 KPIs + actionable view) | `dashboard/app.py` → `docker compose up dashboard` |
+| Model/analysis card | `docs/model_analysis_card.md` |
+| Assumptions + sensitivity | `project_config.yaml`, `docs/decision_log_topic1.md` §2b, `outputs/tables/sensitivity_*.csv`, `outputs/figures/sensitivity_heatmap.png` |
+| Checklist evidence | `docs/traceability_matrix_topic1.md` |
 
 `src/`, `tests/`, `dashboard/`, config, `data/` và `outputs/` được mount vào container, nên sửa code trên máy thì container thấy ngay. Dashboard và notebook chỉ bind `127.0.0.1` vì không có authentication.
 
@@ -55,20 +74,20 @@ Expand-Archive data\raw\online_retail_ii.zip data\raw
 Get-FileHash data\raw\online_retail_II.xlsx   # phải bằng source.sha256_xlsx trong project_config.yaml
 ```
 
-Khi `data.ingest.download_raw` được implement, lệnh trên sẽ được thay bằng `python -m retail_targeting run ingest`.
+Hoặc tự động: `python -m retail_targeting run ingest` (tải, kiểm checksum, giải nén).
 
 ## Chạy
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest                     # test suite
 .\.venv\Scripts\python.exe -m retail_targeting validate-config
-.\.venv\Scripts\python.exe -m retail_targeting run all   # sau khi các stage được implement
+.\.venv\Scripts\python.exe -m retail_targeting run all
 ```
 
 ## Bắt đầu code
 
 1. Chọn module theo thứ tự ở `docs/code_specification_topic1.md` §10.
 2. Đọc mục §6.x của module đó: signature, hành vi, invariant.
-3. Implement hàm đang raise `NotImplementedError`.
-4. Chạy test tương ứng. Khi pass, pytest báo `XPASS(strict)` → xoá `@todo` ở test đó.
+3. Sửa/mở rộng code; thêm test cho logic mới.
+4. Chạy `docker compose run --rm test` (phải 0 failed).
 5. Nếu cần một quyết định mà spec chưa có, ghi vào `docs/decision_log_topic1.md` trước khi code.
