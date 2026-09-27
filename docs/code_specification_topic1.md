@@ -7,7 +7,7 @@
 | Căn cứ | `project_specification_topic1.md` (SPEC), `implementation_plan_topic1.md` (PLAN), `data_profile_topic1.md` (PROFILE — số liệu thật), `decision_log_topic1.md` |
 | Package | `retail_targeting` (thư mục `src/retail_targeting/`) |
 | Python | 3.13; dependencies pinned trong `requirements.txt` |
-| Trạng thái scaffold | Foundation đã implement (`config`, `contracts`, `decision.simulation.compute_eim`). Các module còn lại là stub có signature + docstring, và đã có test viết trước (test-first) |
+| Trạng thái | **Đã implement toàn bộ** (2026-09-27): mọi module §6 có code, 79 test pass, pipeline chạy lại sạch trong Docker và khớp §3.1 |
 
 Mục tiêu của tài liệu: một thành viên đọc xong có thể code module mình phụ trách mà **không phải tự quyết định** tên cột, kiểu dữ liệu, quy tắc hay đường dẫn. Khi code gặp tình huống spec chưa nói tới, phải ghi vào decision log trước rồi mới code.
 
@@ -587,7 +587,7 @@ Chạy bằng `pytest` (`pyproject.toml` đặt `pythonpath = ["src", "tests"]`)
 | `test_evaluate.py` | precision/recall@k trên ví dụ tay; prevalence | todo |
 | `test_policy.py` | k, budget, D bỏ EIM ≤ 0, B tái lập theo seed, tie-break | todo |
 
-Test `todo` dùng marker `helpers.todo`, là `xfail(raises=NotImplementedError, strict=True)`. Chúng hiện ở trạng thái `xfail` khi hàm còn là stub. Khi hàm được implement đúng, test sẽ báo `XPASS(strict)` = fail, nhắc người code **xoá marker**. Nếu implement sai, test fail thật.
+Trong giai đoạn phát triển, test viết trước dùng marker `helpers.todo` (`xfail(raises=NotImplementedError, strict=True)`). Toàn bộ marker đã được gỡ; hiện tất cả test chạy thật. Test bổ sung: `test_decision_integration.py` (INV-07/09/11/12, grid size), `test_dashboard.py` (KPI = CSV, render). Khi thêm hàm mới, có thể dùng lại `helpers.todo` theo cùng quy trình.
 
 ---
 
@@ -630,7 +630,7 @@ Bước 2–4 (M1) và bước 5, 7 (M2) chạy song song: M2 phát triển trê
 - **D24** — Policy comparison báo cáo cả `model_p` và `actual_outcome`; `actual_outcome` là số liệu chính để so sánh (Decided).
 - **D25** — Final model: fit train, tune + calibrate validation, test một lần; báo cáo calibration-in-the-large theo snapshot test (Decided).
 - **D26** — `lift_structure` (constant/persuadable/segment) + Policy E lowest-p (Proposed; `incremental_lift` đã implement).
-- **D27** — Cap `V_i` tại quantile 0.99 AOV train (Decided; `fit_value_cap` là stub).
+- **D27** — Cap `V_i` tại quantile 0.99 AOV train (Decided; đã implement).
 - **D28** — SPEC = nghiệp vụ; Code Spec = kỹ thuật (Decided).
 
 Chi tiết lý do: `review_v1_topic1.md`.

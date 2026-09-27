@@ -263,7 +263,7 @@ Raw unit: một **transaction line** (một sản phẩm trong một invoice). T
 |---|---|---|---|---|---|---|---|
 | `TBD` | `TBD` | `TBD` | `TBD` | `TBD` | `CR-xx` | none / post-T0 / target | feature / key / target / excluded |
 
-Data dictionary gồm hai phần: (a) raw fields; (b) derived fields (net_value, is_cancellation, is_return, order_id, features RFM, target).
+Template trên đã được điền đầy đủ trong `data_dictionary.md` (v1). Data dictionary gồm hai phần: (a) raw fields; (b) derived fields (net_value, is_cancellation, is_return, order_id, features RFM, target).
 
 ### 3.4 Initial profiling checklist
 
@@ -455,7 +455,7 @@ Kiểm tra stability: tỷ trọng segment và repeat rate theo segment qua các
 |---|---|---|
 | `p_i` | Predicted natural repeat probability (không offer) trong outcome window | Model (calibrated) |
 | `V_i` | Expected net value của **một** order = `aov_i`, **cap tại quantile 99% AOV trên train** (D27) | Feature; fallback = median AOV của segment tính trên **train** khi `aov ≤ 0` (D23) |
-| `m` | Gross-margin rate, `0 ≤ m ≤ 1` | `[ASSUME]` `TBD` |
+| `m` | Gross-margin rate, `0 ≤ m ≤ 1` | `[ASSUME]` 0.40, grid 0.30–0.50 (D11) |
 | `d` | Discount rate của offer, `0 ≤ d < m` | Scenario |
 | `δ_i` | Assumed incremental probability lift do offer, `0 ≤ δ_i ≤ 1 − p_i` | Scenario — **không phải causal estimate** |
 | `c` | Contact/campaign cost trên mỗi khách được target | `[ASSUME]` |

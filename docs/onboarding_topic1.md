@@ -111,7 +111,7 @@ git clone https://github.com/sutobode/BA.git && cd BA
 python -m venv .venv
 source .venv/Scripts/activate          # Git Bash; PowerShell: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt && pip install -e .
-pytest                                  # kỳ vọng: 0 failed; các test "xfail" là hàm chưa code
+pytest                                  # kỳ vọng: 79 passed, 0 failed
 python -m retail_targeting validate-config
 ```
 
@@ -126,7 +126,7 @@ Tải dữ liệu theo `README.md` → mục *Dữ liệu*. Kiểm tra SHA-256 p
 1. Lấy task trong `implementation_plan_topic1.md` §4b đúng owner và đã đủ dependency (Definition of Ready: input đã có).
 2. Đọc mục Code Spec §6.x tương ứng và chạy test của module đó (`pytest tests/test_<module>.py`).
 3. Code trong `src/`. Notebook chỉ gọi hàm và vẽ biểu đồ.
-4. Chạy test. Hàm đúng thì test chuyển từ `xfail` sang `XPASS(strict)`, tức là **fail**. Đó là tín hiệu để **xoá `@todo`** ở test đó. Chạy lại cho pass.
+4. Viết test cho logic mới (fixture nhỏ, đáp án tính tay) và chạy toàn bộ test. Nếu viết test trước khi code, có thể gắn `@todo` (xem Code Spec §8) rồi gỡ khi hàm xong.
 5. Nếu có data thật, so với con số tham chiếu ở Code Spec §3.1.
 6. Nếu phải quyết định điều spec chưa nói: thêm dòng vào decision log (status Proposed) → báo owner accountable → rồi mới code.
 7. Mở PR (§7).
@@ -161,7 +161,7 @@ Tải dữ liệu theo `README.md` → mục *Dữ liệu*. Kiểm tra SHA-256 p
 
 ## 8. FAQ
 
-**Q: Test báo `xfailed` có phải lỗi không?** Không. Đó là test của hàm chưa code. Chỉ `failed` hoặc `error` mới là lỗi.
+**Q: Test báo `xfailed` có phải lỗi không?** Hiện không còn test xfail. Nếu thấy, đó là test viết trước cho hàm mới chưa code; chỉ `failed`/`error` mới là lỗi.
 
 **Q: Vì sao không dùng random split?** Cùng một khách xuất hiện ở nhiều T0. Random split sẽ để model học từ tương lai (SPEC §6).
 
