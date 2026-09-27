@@ -6,16 +6,37 @@ Promotion results in this project are **scenario-based simulations under stated 
 
 ## Tài liệu
 
+**Người mới: đọc `docs/onboarding_topic1.md` trước.**
+
 | File | Nội dung |
 |---|---|
-| `docs/project_specification_topic1.md` | Business/analytics spec (SPEC) |
-| `docs/implementation_plan_topic1.md` | Kế hoạch 6 tuần, 38 task |
-| `docs/code_specification_topic1.md` | **Code spec**: module, hàm, schema, config, test |
+| `docs/onboarding_topic1.md` | **Bắt đầu tại đây**: bức tranh tổng thể, glossary, quy trình, git workflow |
+| `docs/project_specification_topic1.md` | Business/analytics spec (SPEC) — nghiệp vụ & phương pháp |
+| `docs/code_specification_topic1.md` | **Code spec**: module, hàm, schema, config, test, con số tham chiếu |
+| `docs/implementation_plan_topic1.md` | Kế hoạch 6 tuần, 38 task, trạng thái |
+| `docs/decision_log_topic1.md` | Quyết định D01–D28 |
+| `docs/review_v1_topic1.md` | Review spec & giải pháp (lý do Policy E, lift structure, value cap) |
 | `docs/data_profile_topic1.md` | Profiling dữ liệu thật |
-| `docs/decision_log_topic1.md` | Quyết định D01–D24 |
+| `docs/source_log.md`, `docs/data_dictionary.md` | Nguồn dữ liệu; định nghĩa từng cột |
 | `docs/traceability_matrix_topic1.md` | Yêu cầu capstone → task → evidence |
+| `docs/archive/` | Tài liệu cũ đã bị thay thế (không dùng) |
 
-## Setup (Windows PowerShell)
+## Chạy bằng Docker (khuyến nghị)
+
+Yêu cầu: Docker Desktop đang chạy. Tải data vào `data/raw/` trước (mục *Dữ liệu*).
+
+```bash
+docker compose build
+docker compose run --rm test                                   # pytest
+docker compose run --rm pipeline validate-config --require-scenarios
+docker compose run --rm pipeline run all                       # khi các stage đã được implement
+docker compose up dashboard                                    # http://localhost:8501
+docker compose --profile dev up notebook                       # JupyterLab http://localhost:8888
+```
+
+`src/`, `tests/`, `dashboard/`, config, `data/` và `outputs/` được mount vào container, nên sửa code trên máy thì container thấy ngay. Dashboard và notebook chỉ bind `127.0.0.1` vì không có authentication.
+
+## Setup local (Windows PowerShell)
 
 ```powershell
 python -m venv .venv

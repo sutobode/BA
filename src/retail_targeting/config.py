@@ -19,6 +19,7 @@ REQUIRED_SECTIONS = (
     "segmentation", "model", "simulation", "versions",
 )
 SCENARIO_KEYS = ("discount_rate", "incremental_lift", "gross_margin", "contact_cost")
+LIFT_STRUCTURES = ("constant", "persuadable", "segment")
 REQUIRED_PATHS = (
     "raw_dir", "interim_dir", "processed_dir", "tables_dir",
     "figures_dir", "models_dir", "reports_dir",
@@ -162,6 +163,13 @@ def _validate_simulation(s: dict[str, Any], require_scenarios: bool, errors: lis
     _require(isinstance(seeds, int) and seeds >= 1, "simulation.random_baseline_seeds: int >= 1", errors)
     bases = set(s.get("value_bases") or [])
     _require(bases <= {"model_p", "actual_outcome"} and bool(bases), "simulation.value_bases: subset of {model_p, actual_outcome}", errors)
+    structure = s.get("lift_structure", "constant")
+    _require(structure in LIFT_STRUCTURES, f"simulation.lift_structure: one of {LIFT_STRUCTURES}", errors)
+    mult = s.get("segment_lift_multipliers") or {}
+    _require(all(float(v) >= 0 for v in mult.values()), "simulation.segment_lift_multipliers: values >= 0", errors)
+    _require(structure != "segment" or bool(mult), "simulation.segment_lift_multipliers: required for lift_structure=segment", errors)
+    q = s.get("value_cap_quantile")
+    _require(q is None or 0 < float(q) <= 1, "simulation.value_cap_quantile: null or in (0, 1]", errors)
 
 
 def validate_config(raw: dict[str, Any], *, require_scenarios: bool = False) -> None:

@@ -13,7 +13,7 @@ import pandas as pd
 from retail_targeting.config import Config
 from retail_targeting.decision.simulation import ScenarioParams
 
-POLICIES = ("A", "B", "C", "D")
+POLICIES = ("A", "B", "C", "D", "E")
 VALUE_BASES = ("model_p", "actual_outcome")
 
 
@@ -44,6 +44,12 @@ def select_policy_d(frame: pd.DataFrame, k: int, budget: float | None) -> np.nda
     raise NotImplementedError("M3 — CODE SPEC §6.14")
 
 
+def select_policy_e(frame: pd.DataFrame, k: int) -> np.ndarray:
+    """D26 baseline: k rows with the lowest ``p`` (asc, tie customer_id asc). No EIM filter.
+    Policy D must beat E for value weighting to add anything."""
+    raise NotImplementedError("M3 — CODE SPEC §6.14")
+
+
 def summarize_selection(frame: pd.DataFrame, selected: np.ndarray, value_basis: str) -> dict:
     """target_count, expected_future_value, expected_promotion_cost, simulated_eim, eim_per_target,
     discount_leakage_share, actual_repeat_rate_targeted (CODE SPEC §5.6)."""
@@ -53,7 +59,8 @@ def summarize_selection(frame: pd.DataFrame, selected: np.ndarray, value_basis: 
 def run_policies(scored: pd.DataFrame, scenarios: list[ScenarioParams], cfg: Config, *,
                  value_basis: str) -> pd.DataFrame:
     """For each decision_date × scenario × capacity_fraction: run A, B (random_baseline_seeds seeds),
-    C, D on the same customers and k (INV-12). Returns rows of contract ``scenario_results``."""
+    C, D, E on the same customers and k (INV-12), with simulation.lift_structure.
+    Returns rows of contract ``scenario_results``."""
     raise NotImplementedError("M3 — CODE SPEC §6.14")
 
 

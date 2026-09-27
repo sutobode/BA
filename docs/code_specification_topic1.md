@@ -30,6 +30,8 @@ Mục tiêu của tài liệu: một thành viên đọc xong có thể code mod
 
 ```text
 BA/
+├── Dockerfile, docker-compose.yml, .dockerignore   # services: test | pipeline | dashboard | notebook (profile dev)
+├── requirements-dev.txt        # jupyterlab, ipykernel (notebook image only)
 ├── pyproject.toml              # package metadata + pytest config (pythonpath=src,tests)
 ├── requirements.txt            # pinned
 ├── project_config.example.yaml # template (commit)
@@ -157,6 +159,9 @@ Ghi chú: `stock_adjustment` là 3,391 chứ không phải 3,393 như trong prof
 | `simulation.budget` | float \| null | > 0 nếu có | policy |
 | `simulation.random_baseline_seeds` | int | ≥ 1 (spec: 100) | policy B |
 | `simulation.value_fallback` | str | `median_aov_by_segment_train` | simulation |
+| `simulation.value_cap_quantile` | float \| null | (0, 1]; null = không cap (D27) | simulation |
+| `simulation.lift_structure` | str | `constant` \| `persuadable` \| `segment` (D26) | simulation |
+| `simulation.segment_lift_multipliers` | dict[str, float] | ≥ 0; bắt buộc khi `lift_structure == segment` | simulation |
 | `versions.*` | str | | mọi artifact |
 
 Tham số scenario còn `null` là hợp lệ khi load; chỉ `decision.*` mới yêu cầu giá trị cụ thể (`require_scenarios=True`). Nhờ vậy M1/M2 chạy được pipeline trước khi D10/D11 được freeze.
@@ -188,7 +193,7 @@ Tham số scenario còn `null` là hợp lệ khi load; chỉ `decision.*` mới
 | `orders` | `clean.build_orders` | `data/interim/orders.parquet` | `order_id` | M1 |
 | `customer_snapshots` | `snapshots.build_all_snapshots` + `rfm.apply_*` + `split.assign_split` | `data/processed/customer_snapshots.parquet` | `customer_id, decision_date` | M1 (M2 thêm cột `split`) |
 | `customer_predictions` | `train/calibrate` + `pipeline.predict_stage` | `outputs/tables/customer_predictions.csv` | `customer_id, decision_date` | M2 |
-| `scenario_results` | `policy.run_policies` | `outputs/tables/scenario_results.csv` | `scenario, policy, decision_date, capacity_k, seed, value_basis` | M3 |
+| `scenario_results` | `policy.run_policies` | `outputs/tables/scenario_results.csv` | `scenario, policy, lift_structure, decision_date, capacity_k, seed, value_basis` | M3 |
 | `policy_comparison` | `policy.summarize` | `outputs/tables/policy_comparison.csv` | `scenario, policy, capacity_fraction, value_basis` | M3 |
 | `sensitivity_results` | `sensitivity.run_grid` | `outputs/tables/sensitivity_results.csv` | grid keys | M3 |
 | `customer_targeting_table` | `policy.build_targeting_table` | `outputs/tables/customer_targeting_table.csv` | `customer_id, decision_date, scenario, policy` | M3 |
@@ -260,6 +265,8 @@ Key `(customer_id, decision_date)`. Observation window `W_obs = [T0 − observat
 
 Eligibility: khách có ≥ 1 purchase order ∈ W_obs. Cột có tiền tố `label_` và cột target **không bao giờ** được nằm trong `model.*_features` (`config` kiểm tra điều này).
 
+Lưu ý (review R-10): contract hard-code `repeat_purchase_90d` và `label_future_value_90d`. Nếu D06 đổi horizon, phải sửa đồng thời `temporal.target_name`, `contracts.SCHEMAS["customer_snapshots"]`, fixture `EXPECTED` và các test liên quan trong cùng một PR.
+
 ### 5.4 `customer_predictions`
 
 `customer_id, decision_date, split, actual_repeat_purchase:int8, rfm_benchmark_score:float64, predicted_repeat_probability_raw:float64, predicted_repeat_probability:float64 (calibrated), model_version, feature_version`. Check: xác suất ∈ [0, 1].
@@ -272,7 +279,7 @@ Check: số `TARGET` ≤ `capacity_k` cho mỗi `(decision_date, scenario, polic
 
 ### 5.6 `scenario_results`
 
-`scenario, scenario_version, policy{A,B,C,D}, decision_date, value_basis{model_p, actual_outcome}, capacity_fraction, capacity_k, budget, seed (Int64, chỉ B), target_count, expected_future_value, expected_promotion_cost, simulated_eim, eim_per_target, discount_leakage_share, actual_repeat_rate_targeted`.
+`scenario, scenario_version, policy{A,B,C,D,E}, lift_structure, decision_date, value_basis{model_p, actual_outcome}, capacity_fraction, capacity_k, budget, seed (Int64, chỉ B), target_count, expected_future_value, expected_promotion_cost, simulated_eim, eim_per_target, discount_leakage_share, actual_repeat_rate_targeted`.
 
 ---
 
@@ -461,12 +468,20 @@ top-K: sắp xếp score giảm dần, tie-break theo `customer_id`, `k = max(1,
     name: str; discount_rate: float; incremental_lift: float; gross_margin: float; contact_cost: float; version: str = "v0"
     def validate(self) -> None                 # 0 ≤ d < m ≤ 1; 0 ≤ δ ≤ 1; c ≥ 0
 def scenarios_from_config(cfg: Config) -> list[ScenarioParams]      # raise ConfigError nếu còn null
-def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams) -> pd.DataFrame
-    # delta_i = min(δ, 1 - p); m0 = p·V·m; m1 = (p+δ_i)·V·(m-d) - c
+def incremental_lift(p: ArrayLike, params: ScenarioParams, structure: str = "constant",
+                     segments: ArrayLike | None = None, multipliers: dict[str, float] | None = None) -> np.ndarray
+    # [IMPLEMENTED] D26 — trả δ_i TRƯỚC khi cap 1−p:
+    #   constant: δ;  persuadable: δ·4p(1−p);  segment: δ·multipliers.get(segment, 1.0)
+def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams, *, lift: ArrayLike | None = None) -> pd.DataFrame
+    # [IMPLEMENTED] lift=None → δ hằng số; delta_i = min(lift_i, 1 - p)
+    # m0 = p·V·m; m1 = (p+δ_i)·V·(m-d) - c
     # eim = m1 - m0; expected_cost = (p+δ_i)·V·d + c; expected_value = (p+δ_i)·V; leakage_discount = p·V·d
+def break_even_p(value: ArrayLike, params: ScenarioParams) -> np.ndarray
+    # [IMPLEMENTED] p* = δ(m−d)/d − c/(d·V) (δ hằng số; d > 0); dùng cho dashboard/brief (SPEC §9.4)
 def fit_value_fallback(train: pd.DataFrame) -> dict[str, float]    # median aov>0 theo segment trên train (+ "__all__")
-def value_proxy(df: pd.DataFrame, fallback: dict) -> tuple[pd.Series, pd.Series]
-    # V = aov nếu aov > 0, ngược lại fallback[segment]; trả (V, value_is_fallback)
+def fit_value_cap(train: pd.DataFrame, quantile: float | None) -> float | None   # quantile aov>0 trên train (D27)
+def value_proxy(df: pd.DataFrame, fallback: dict, cap: float | None = None) -> tuple[pd.Series, pd.Series]
+    # V = aov nếu aov > 0, ngược lại fallback[segment]; sau đó min(V, cap); trả (V, value_is_fallback)
 ```
 
 ### 6.14 `decision/policy.py` (owner M3, task T2.8/T4.4/T4.5)
@@ -477,6 +492,7 @@ def select_policy_a(frame) -> np.ndarray[bool]
 def select_policy_b(frame, k: int, seed: int) -> np.ndarray[bool]               # rng.choice không lặp
 def select_policy_c(frame, k: int) -> np.ndarray[bool]                          # top-k rfm_score, tie: monetary_net desc, customer_id asc
 def select_policy_d(frame, k: int, budget: float | None) -> np.ndarray[bool]     # eim>0, eim desc, customer_id asc; dừng khi đủ k hoặc Σcost vượt budget
+def select_policy_e(frame, k: int) -> np.ndarray[bool]                          # D26: k khách có p thấp nhất (p asc, customer_id asc); không lọc EIM
 def summarize_selection(frame, selected, value_basis: str) -> dict               # các cột §5.6
 def run_policies(scored: pd.DataFrame, scenarios, cfg, *, value_basis: str) -> pd.DataFrame
 def build_targeting_table(scored, selections, scenario, cfg) -> pd.DataFrame     # §5.5
@@ -612,3 +628,9 @@ Bước 2–4 (M1) và bước 5, 7 (M2) chạy song song: M2 phát triển trê
 - **D22** — Feature mùa vụ `t0_month_sin/cos`, **không** dùng one-hot. Lý do: tháng T0 của validation (4, 5) không có trong tháng của train theo split đề xuất, nên one-hot sẽ thành vector 0. Status: Proposed, M2 kiểm chứng trên validation.
 - **D23** — Value proxy `V = aov` nếu `aov > 0`, ngược lại dùng fallback median theo segment fit trên train. `monetary_net` có thể âm do adjustment (Decided).
 - **D24** — Policy comparison báo cáo cả `model_p` và `actual_outcome`; `actual_outcome` là số liệu chính để so sánh (Decided).
+- **D25** — Final model: fit train, tune + calibrate validation, test một lần; báo cáo calibration-in-the-large theo snapshot test (Decided).
+- **D26** — `lift_structure` (constant/persuadable/segment) + Policy E lowest-p (Proposed; `incremental_lift` đã implement).
+- **D27** — Cap `V_i` tại quantile 0.99 AOV train (Decided; `fit_value_cap` là stub).
+- **D28** — SPEC = nghiệp vụ; Code Spec = kỹ thuật (Decided).
+
+Chi tiết lý do: `review_v1_topic1.md`.

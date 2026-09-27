@@ -1,0 +1,13 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+*.egg-info
+data
+outputs
+notebooks
+docs
+scripts
+*.pdf
+note.txt

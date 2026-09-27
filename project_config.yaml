@@ -69,28 +69,41 @@ model:                        # D08, D14, D22
   log1p_features: [recency_days, frequency_orders, monetary_net, aov, tenure_days,
                    unique_products, total_units, orders_last_30d, avg_interpurchase_days]
   C_grid: [0.01, 0.1, 1.0, 10.0]
-  class_weight_options: [null, balanced]
-  calibration: none           # none | sigmoid | isotonic — freeze tại D08
+  class_weight_options: [null]   # D14 Decided: prevalence 0.38-0.62, balancing would distort probabilities
+  calibration: sigmoid        # D08 Decided: Platt scaling on validation (~6.3k rows)
   top_k_fractions: [0.05, 0.10, 0.20]
 
 simulation:                   # D09, D10, D11, D13, D20, D23, D24
   value_proxy: aov
   value_fallback: median_aov_by_segment_train
+  value_cap_quantile: 0.99      # D27
+  lift_structure: constant      # D26 Decided: primary = constant; persuadable = mandatory sensitivity (constant | persuadable | segment)
+  segment_lift_multipliers:     # dùng khi lift_structure = segment (assumption)
+    "High-value active": 0.5
+    "High-value at risk": 1.5
+    "Developing": 1.0
+    "Low-value active": 1.0
+    "Dormant": 0.5
   incremental_orders_per_horizon: 1
   random_baseline_seeds: 100
   capacity_fractions: [0.05, 0.10, 0.20]
   budget: null
   value_bases: [model_p, actual_outcome]
   scenarios:
-    conservative: {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
-    base:         {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
-    aggressive:   {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
+    # D10/D11 Decided 2026-09-27 — team assumptions grounded in benchmarks (decision_log §5), NOT observed data
+    conservative: {discount_rate: 0.05, incremental_lift: 0.02, gross_margin: 0.40, contact_cost: 0.10}
+    base:         {discount_rate: 0.10, incremental_lift: 0.05, gross_margin: 0.40, contact_cost: 0.10}
+    aggressive:   {discount_rate: 0.20, incremental_lift: 0.10, gross_margin: 0.40, contact_cost: 0.10}
   sensitivity_grid:
-    discount_rate: []         # TBD, >= 3 giá trị
-    incremental_lift: []      # TBD, >= 3 giá trị
+    discount_rate: [0.05, 0.10, 0.15, 0.20]
+    incremental_lift: [0.02, 0.05, 0.10, 0.15, 0.20]
+    gross_margin: [0.30, 0.40, 0.50]
+    contact_cost: [0.01, 0.10, 0.50]
+    lift_structure: [constant, persuadable]
+    value_cap: [true, false]
     capacity_fractions: [0.05, 0.10, 0.20]
 
 versions:
   feature_version: v1
   model_version: v0
-  scenario_version: v0
+  scenario_version: v1

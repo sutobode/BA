@@ -4,8 +4,9 @@
 
 | Metadata | Giá trị |
 |---|---|
-| Version | 1.0 (thay thế BA.pdf — Project Specification v0.1) |
-| Trạng thái | Draft for team review — các mục `TBD` phải freeze theo `decision_log_topic1.md` |
+| Version | 1.1 (thay thế BA.pdf — Project Specification v0.1; cập nhật sau profiling + review v1) |
+| Trạng thái | Ready for implementation — mọi quyết định thiết kế đã chốt (D10/D11, D16, D22, D26 chốt 2026-09-27) |
+| Nguồn chuẩn | SPEC = **cái gì & tại sao** (nghiệp vụ, phương pháp). `code_specification_topic1.md` = **tên cột, kiểu, hàm, đường dẫn**. Nếu hai tài liệu khác nhau, Code Spec thắng về kỹ thuật; SPEC thắng về nghiệp vụ; mọi khác biệt phải ghi vào decision log |
 | Team | 3 thành viên (M1 Data, M2 Modeling, M3 Decision/Dashboard) |
 | Official duration | **6 tuần** (capstone, trang 1–2) |
 | Primary dataset | UCI Machine Learning Repository — Online Retail II |
@@ -29,7 +30,7 @@
 | `BA_Capstone_Topics_2026_MSc class (1).pdf` | PDF | 207,744 bytes | 11 | Đọc được qua `pdftotext -layout` | **Source of truth** cho yêu cầu môn học |
 | `BA.pdf` | PDF | 381,340 bytes | 27 | Đọc được; một số ký tự tiếng Việt bị lỗi font khi trích xuất, nội dung kỹ thuật đọc được | Project Specification v0.1 cần review |
 | `BA (1).pdf` | PDF | 256,341 bytes | 14 | Đọc được; lỗi font tương tự | Phân chia công việc + plan 4 tuần |
-| `Topic1_Spec_Review_and_Recommendation.md` | Markdown | ~29.8 KB | — | Đọc được | Review trước đó; đã đối chiếu lại với PDF |
+| `archive/Topic1_Spec_Review_and_Recommendation.md` | Markdown | ~29.8 KB | — | Đọc được | Review trước đó; đã đối chiếu lại với PDF |
 | Trang dataset UCI (hyperlink trong CAP tr.3 và tr.11) | Web | — | — | Truy cập 2026-09-27 | Source metadata, license, schema documentation |
 
 **Link dataset do capstone cite `[FACT]`:** hyperlink "UCI Online Retail II" ở CAP tr.3 (Topic 1) và tr.11 (Data Sources – Quick Reference) trỏ tới <https://archive.ics.uci.edu/dataset/502/online+retail+ii> (trích xuất bằng PyMuPDF và pypdf, hai thư viện cho cùng kết quả).
@@ -189,7 +190,7 @@ Production API/real-time system; deep learning; product recommender; personalize
 
 ### 2.6 Assumptions `[ASSUME]`
 
-A1 ~~Online Retail II tải được, terms cho phép dùng~~ → **đã xác minh 2026-09-27**: tải được, license CC BY 4.0. A2 Coverage 01/12/2009–09/12/2011 (theo UCI) cho 16 monthly snapshots với 180/90 ngày; phải xác nhận bằng InvoiceDate thực tế. A3 Có trường cho phép nhận diện cancellation/return. A4 Tỷ lệ missing Customer ID chấp nhận được cho phân tích customer-level. A5 Gross margin, discount, incremental lift, contact cost không có trong data → do nhóm giả định.
+A1 ~~Online Retail II tải được, terms cho phép dùng~~ → **đã xác minh 2026-09-27**: tải được, license CC BY 4.0. A2 ✅ InvoiceDate thực tế 2009-12-01 → 2011-12-09, cho 16 monthly snapshots (data profile §1, §5). A3 ✅ Cancellation nhận diện được (invoice `C`); return **không** tách được khỏi cancellation → gộp làm `adjustment` (D19). A4 ✅ Missing Customer ID 22.76% dòng / 15.15% revenue — chấp nhận được, phải ghi là bias trong model card. A5 Gross margin, discount, incremental lift, contact cost không có trong data → do nhóm giả định.
 
 ### 2.7 Dependencies
 
@@ -232,7 +233,7 @@ Truy cập UCI; môi trường Python (pandas, scikit-learn, matplotlib; dashboa
 | `access_download_datetime` | 2026-09-27 (+07:00) — lần tải kiểm chứng | Lệnh tải |
 | `sha256_zip` | `572E36277C2390FBFDE10664750731E0A86F55E33470D91919085F0408E67BFB` (45,622,418 bytes) | `Get-FileHash` |
 | `sha256_xlsx` | `BCBE73B35F5B7BABF197FB0CB983A11F5D9FF929078D4AA53D171B1F2DF2E980` (45,622,278 bytes) | `Get-FileHash` |
-| `sheets_or_parts` | `TBD` — xác minh ở T1.3 (thường chia theo giai đoạn năm; phải kiểm tra overlap giữa các sheet) | Chưa profiling |
+| `sheets_or_parts` | 2 sheet `Year 2009-2010` (525,461 dòng), `Year 2010-2011` (541,910); 2010-12-01…09 trùng hoàn toàn (22,523 dòng) → CR-00 | Data profile §1–§2 |
 | `filters` | Ghi mọi filter, kèm số dòng trước/sau | T2.1 |
 | `joins` | MVP: không join external data | Thiết kế |
 | `cleaning_decisions` | Tham chiếu `CR-xx` trong §4 | T2.1 |
@@ -254,7 +255,7 @@ Raw unit: một **transaction line** (một sản phẩm trong một invoice). T
 | CustomerID | Mã khách hàng 5 chữ số |
 | Country | Quốc gia của khách |
 
-`[ASSUME]` Tên cột trong file Excel có thể khác tên trên trang (ví dụ `Invoice`, `Price`, `Customer ID`), và có mã StockCode không phải 5 chữ số (phí, bưu phí, điều chỉnh). Trang UCI có "Has Missing Values? Yes" nhưng bảng biến lại ghi "no" cho mọi dòng, nên missingness phải đo trực tiếp. Tên cột chính xác chỉ được ghi vào data dictionary sau T1.3 (profiling).
+`[FACT — profiling 2026-09-27]` Tên cột trong file khác trang UCI: `Invoice, StockCode, Description, Quantity, InvoiceDate, Price, Customer ID, Country`. Có 62 StockCode không chuẩn (bưu phí, phí, điều chỉnh, voucher…). Missingness đo trực tiếp: Customer ID thiếu 22.76% dòng, Description thiếu 4,275 dòng. Chi tiết: `data_profile_topic1.md`; mô tả từng field: `data_dictionary.md`.
 
 ### 3.3 Data dictionary template
 
@@ -270,11 +271,11 @@ Row count (theo sheet/năm) · date range · unique customers · unique invoices
 
 ### 3.5 Data-quality report format
 
-`outputs/data_quality_report.md` (+ CSV): mỗi check có `check_id, description, metric, value, threshold, status(PASS/WARN/FAIL), action`.
+`outputs/reports/data_quality_report.md` (+ CSV): mỗi check có `check_id, description, metric, value, threshold, status(PASS/WARN/FAIL), action`. Hàm sinh: `retail_targeting.data.quality.write_quality_report`.
 
 ### 3.6 Reproducible acquisition
 
-`src/data/download.py` (hoặc notebook 01) tải từ `source_url` trong config, tính SHA-256, so với giá trị đã log; fail nếu khác mà không có ghi chú version mới.
+`retail_targeting.data.ingest.download_raw` (CLI: `python -m retail_targeting run ingest`) tải từ `source.download_url`, tính SHA-256, so với `source.sha256_*` trong config; fail (`ChecksumError`) nếu khác mà không có ghi chú version mới.
 
 ### 3.7 Raw-data commit policy
 
@@ -284,22 +285,24 @@ Mặc định **không commit raw data** vào repo (`data/raw/` trong `.gitignor
 
 ## 4. Canonical transaction cleaning contract
 
-Mọi rule có mã `CR-xx`, phải được xác nhận bằng EDA (T1.2–T2.1) trước khi freeze. Ghi số dòng/khách/revenue trước và sau mỗi rule.
+Các rule đã được **freeze bằng profiling data thật** (D04, D19, D21). Thứ tự áp dụng, tên cột và `exclude_reason` chính xác nằm ở Code Spec §6.4. Số dòng bị ảnh hưởng trên data thật nằm ở Code Spec §3.1. Mọi rule phải ghi số dòng, số khách và giá trị trước/sau vào `cleaning_log`.
 
-| Rule | Nội dung đề xuất `[DESIGN]` | Cần xác nhận |
-|---|---|---|
-| CR-01 Cancellation | Invoice code bắt đầu bằng "C"/"c" là cancellation (theo documentation UCI) | Kiểm tra trên data: mọi dòng invoice "C" có quantity âm không; có prefix chữ khác không (ví dụ adjustment) |
-| CR-02 Return | Dòng quantity âm không phải cancellation toàn invoice được coi là return; giữ lại để tính net value và `return_rate` | Có phân biệt được cancellation vs return không; nếu không → gộp "negative adjustments" và ghi limitation |
-| CR-03 Line value | `line_value = quantity × unit_price`; `net_value` = tổng có dấu | Đơn vị tiền tệ |
-| CR-04 Quantity | Quantity = 0 → loại; âm → theo CR-01/02 | |
-| CR-05 Price | Price ≤ 0 → loại khỏi purchase events, log riêng (có thể là adjustment/fee) | Có mã non-product (postage, fee, manual…)? → quyết định giữ/loại (D04) |
-| CR-06 Missing Customer ID | Loại khỏi customer-level dataset; **không suy diễn danh tính**; report % dòng, % revenue | |
-| CR-07 Duplicates | Exact duplicate rows → giữ 1, log số lượng | Duplicate giữa các sheet năm |
-| CR-08 Dates | Missing/invalid datetime → loại; kiểm tra timezone/format | |
-| CR-09 Order unit | `order_id` = invoice identifier; một order = tập dòng cùng invoice | |
-| CR-10 Valid purchase event | Order có customer ID hợp lệ, không phải cancellation, tổng net value > 0 sau khi áp CR-02..08 | |
-| CR-11 Extreme values | Không xóa mặc định; flag top 0.1% line value; phân tích ảnh hưởng; winsorize **chỉ feature** nếu cần, cutoff fit trên train | |
-| CR-12 Temporal safety | Cleaning chỉ là rule theo dòng (row-wise), không dùng aggregate toàn dataset → không leakage. Mọi aggregate (quantile, median) nằm ở bước feature/modeling và fit trên train | |
+| Rule | Quy tắc (final) | Bằng chứng trên data | Kết quả |
+|---|---|---|---|
+| CR-00 Sheet overlap | Sheet 2009-2010 lấy `< 2010-12-01`; sheet 2010-2011 lấy `≥ 2010-12-01` | 22,523 dòng 01–09/12/2010 giống hệt ở cả 2 sheet | bỏ khỏi frame |
+| CR-01/02 Cancellation & return | Invoice bắt đầu `C` ⇒ `adjustment` (cancellation và return **gộp chung**: không phân biệt được trong data) | Mọi dòng âm có Customer ID đều thuộc invoice `C` | `adjustment`; dùng cho `adjustment_value`, `return_rate` |
+| CR-03 Line value | `line_value = quantity × price` (£) | — | cột `line_value` |
+| CR-04 Quantity âm không có `C` | Điều chỉnh kho | 3,393 dòng, đều không ID và price 0 | `excluded/stock_adjustment` |
+| CR-05 Bad debt | Invoice bắt đầu `A` | 6 dòng "Adjust bad debt", price âm | `excluded/bad_debt_adjustment` |
+| CR-05b Non-product | StockCode thuộc danh sách/prefix trong config (`POST, DOT, C2, M, D, S, BANK CHARGES, AMAZONFEE, CRUK, gift_*, ADJUST*, TEST*`…) | 62 mã đặc biệt đã rà (data profile §4) | `non_product` — không tính vào value |
+| CR-05c Price ≤ 0 | Không phải purchase | 6,014 dòng price 0 | `excluded/zero_price` |
+| CR-06 Missing Customer ID | Giữ ở line level để đo coverage; loại khỏi orders/snapshots; **không suy diễn danh tính** | 22.76% dòng, 15.15% revenue dương | `excluded/missing_customer` |
+| CR-07 Duplicates | Exact duplicate → giữ 1 | 11,812 dòng sau CR-00 | bỏ khỏi frame |
+| CR-08 Dates | `invoice_ts` null → loại | 0 dòng | `excluded/invalid_date` |
+| CR-09 Order unit | `order_id` = invoice; `order_ts` = min timestamp của invoice | 83 invoice có > 1 timestamp; 0 invoice có > 1 customer | bảng `orders` |
+| CR-10 Valid purchase event | Order `purchase` có customer ID, value > 0 | 36,594 orders | `order_type = purchase` |
+| CR-11 Extreme values | Không xóa ở cleaning. Giao dịch cực lớn (80,995 đơn vị) đã bị invoice `C` bù trừ. Cap value chỉ ở simulation (D27) | — | — |
+| CR-12 Temporal safety | Cleaning là rule theo dòng, không có aggregate toàn dataset → không leakage. Mọi aggregate (quantile, median, cap) fit trên train | — | — |
 
 Nguyên tắc: Frequency = **distinct valid orders**; Monetary = net value trong observation window (purchases − returns); `AOV = Monetary / Frequency` khi Frequency > 0. Không âm thầm xóa return (return behavior là feature).
 
@@ -321,7 +324,7 @@ Nguyên tắc: Frequency = **distinct valid orders**; Monetary = net value trong
 
 - `data_start + 180d` = 2010-05-30 → T0 đầu tiên là **2010-06-01**
 - `data_end − 90d` = 2011-09-10 → T0 cuối cùng là **2011-09-01**
-- Như vậy có **16 monthly snapshots** (2010-06-01 … 2011-09-01). Con số này phải được xác nhận lại bằng min/max `InvoiceDate` thực tế ở T1.3.
+- Như vậy có **16 monthly snapshots** (2010-06-01 … 2011-09-01). ✅ Đã xác nhận bằng InvoiceDate thực tế (2009-12-01 07:45 → 2011-12-09 12:50). Kích thước: 47,933 snapshot-rows; train 23,987 · validation 6,346 · test 5,534 (Code Spec §3.1).
 
 Đề xuất split `[DESIGN]` (freeze tại D07, sau T1.3):
 
@@ -385,21 +388,18 @@ Tên target gắn với horizon; nếu đổi horizon (D06) → đổi tên (`re
 
 ### 7.1 Feature specification
 
-| Feature | Công thức (trên observation window, `< T0`) | Type | Bắt buộc |
-|---|---|---|---|
-| `recency_days` | `T0 − last_valid_order_ts` (ngày) | int | Có |
-| `frequency_orders` | `count distinct valid order_id` | int | Có |
-| `monetary_net` | `Σ net_value` (purchase − return) | float | Có |
-| `aov` | `monetary_net / frequency_orders` | float | Có (dùng cho `V_i`) |
-| `tenure_days` | `T0 − first_valid_order_ts` (toàn bộ lịch sử `< T0`) | int | Tùy chọn |
-| `active_months` | số tháng có ≥1 order | int | Tùy chọn |
-| `avg_interpurchase_days` | trung bình khoảng cách giữa các order; NaN nếu 1 order | float | Tùy chọn |
-| `return_rate` | `|return value| / gross purchase value` | float | Tùy chọn |
-| `unique_products` | distinct product codes | int | Tùy chọn |
-| `total_quantity` | Σ quantity dương | int | Tùy chọn |
-| `orders_last_30d` | orders trong `[T0−30d, T0)` | int | Tùy chọn |
+Bảng dưới đây mô tả **ý nghĩa nghiệp vụ**. Tên cột, kiểu dữ liệu và công thức chính xác nằm ở Code Spec §5.3 (nguồn chuẩn cho code). Mọi feature chỉ dùng dữ liệu `< T0`.
 
-Missing/fallback: `avg_interpurchase_days` NaN → impute bằng median train + cờ `single_order_flag`. Giá trị lệch (monetary, aov) → `log1p` trong pipeline LR. `feature_version` tăng mỗi khi đổi công thức.
+| Nhóm | Feature (tên cột) | Ý nghĩa | Hypothesis |
+|---|---|---|---|
+| RFM (bắt buộc) | `recency_days`, `frequency_orders`, `monetary_net` | Mua gần đây thế nào, bao nhiêu order, giá trị ròng sau cancellation/return | H1, H2 |
+| Value | `aov`, `purchase_value`, `adjustment_value` | Giá trị một order (dùng cho `V_i`), tổng mua, tổng huỷ/trả | H2 |
+| Hành vi | `return_rate`, `active_months`, `avg_interpurchase_days`, `orders_last_30d` | Tỷ lệ huỷ/trả, độ đều đặn, nhịp mua, cường độ gần đây | H1 |
+| Chiều sâu | `unique_products`, `total_units`, `tenure_days` | Đa dạng sản phẩm, khối lượng, thâm niên | H2 |
+| Mùa vụ | `t0_month_sin`, `t0_month_cos` | Tháng của decision date (thuần lịch, không leakage) — D22 | — |
+| Mô tả, không phải feature | `cohort_month`, `country` | Cohort analysis; country **không** dùng làm feature MVP (ethics, §13) | — |
+
+Missing/fallback: `avg_interpurchase_days` NaN khi khách chỉ có 1 order (21,884 dòng) → impute median train trong pipeline. Giá trị lệch (monetary, aov, …) → signed `log1p` trong pipeline LR. `feature_version` tăng mỗi khi đổi công thức.
 
 ### 7.2 Cohort
 
@@ -409,15 +409,17 @@ Missing/fallback: `avg_interpurchase_days` NaN → impute bằng median train + 
 
 R, F, M → quintile score 1–5 (R đảo chiều). **Cutoffs fit trên train snapshots, freeze** vào `project_config` rồi áp cho validation/test. Frequency có nhiều giá trị trùng → dùng rank-based quantile hoặc cutoffs cố định; ghi phương pháp.
 
-Segments `[DESIGN]` (5 nhóm, rule cụ thể freeze sau EDA — D12):
+Segments (rule trong `project_config.yaml → segmentation.rules`, đánh giá theo thứ tự, rule đầu tiên khớp thắng, rule cuối là `default` nên luôn phủ hết — D12):
 
-| Segment | Rule khởi tạo | Hành động gợi ý |
-|---|---|---|
-| High-value active | R ≥ 4, F ≥ 4, M ≥ 4 | Thường tự mua → cẩn trọng discount |
-| High-value at risk | R ≤ 2, M ≥ 4 | Ứng viên retention |
-| Developing | R ≥ 3, F 2–3 | Nurture |
-| Low-value active | R ≥ 3, M ≤ 2 | Offer chi phí thấp |
-| Dormant | R ≤ 2, F ≤ 2 | Thường không target |
+| # | Segment | Rule (score 1–5) | Hành động gợi ý |
+|---|---|---|---|
+| 1 | High-value active | `m ≥ 4 and r ≥ 4` | Thường tự mua → cẩn trọng discount (H3) |
+| 2 | High-value at risk | `m ≥ 4 and r ≤ 2` | Ứng viên retention |
+| 3 | Developing | `r ≥ 3 and (m ≥ 3 or f ≥ 3)` | Nurture |
+| 4 | Low-value active | `r ≥ 3` (còn lại) | Offer chi phí thấp |
+| 5 | Dormant | `default` | Thường không target |
+
+Chú ý: khách `m ≥ 4` với `r = 3` thuộc Developing (rule 3), không phải High-value. Có thể tinh chỉnh sau khi xem phân phối (T3.2), nhưng phải sửa config + test `test_rfm.py` + decision log cùng lúc.
 
 Kiểm tra stability: tỷ trọng segment và repeat rate theo segment qua các snapshot.
 
@@ -432,9 +434,10 @@ Kiểm tra stability: tỷ trọng segment và repeat rate theo segment qua các
 | Baseline | Logistic Regression (L2), `class_weight` so sánh None vs balanced trên validation |
 | Preprocessing | `Pipeline([log1p cho skewed, SimpleImputer(median), StandardScaler, LR])`; fit chỉ trên train |
 | Hyperparameter | `C` ∈ grid log-scale, chọn theo PR-AUC validation |
-| Calibration | Reliability plot + Brier trên validation; nếu lệch → `CalibratedClassifierCV` (sigmoid/isotonic) fit trên validation, report test |
+| Calibration | Reliability plot + Brier trên validation; nếu lệch → `CalibratedClassifierCV` (sigmoid/isotonic) fit trên validation, report test. **Bắt buộc** báo cáo calibration-in-the-large (mean p vs prevalence) theo từng snapshot test (D25) |
+| Final model protocol | Fit trên train → chọn C/class_weight trên validation → calibrate trên validation → đánh giá test **một lần**. MVP không refit trên train+validation (D25) |
 | Seed | `random_seed` trong config |
-| Artifact | `outputs/model/model_v{n}.joblib` + `model_metadata.json` (features, C, train dates, metrics) |
+| Artifact | `outputs/models/model_{model_version}.joblib` + metadata JSON (features, C, train dates, metrics) |
 | Explainability | Hệ số chuẩn hóa + odds ratio; SHAP chỉ với stretch model |
 | Hypotheses | H1 recency ↔ repeat; H2 frequency/value ↔ repeat; H3 khách `p_i` rất cao là target kém (discount leakage); H4 model+value > non-targeted ở cùng capacity (simulation only) |
 
@@ -451,7 +454,7 @@ Kiểm tra stability: tỷ trọng segment và repeat rate theo segment qua các
 | Ký hiệu | Ý nghĩa | Nguồn |
 |---|---|---|
 | `p_i` | Predicted natural repeat probability (không offer) trong outcome window | Model (calibrated) |
-| `V_i` | Expected net value của **một** order = `aov_i` | Feature; fallback = median AOV của segment tính trên **train** |
+| `V_i` | Expected net value của **một** order = `aov_i`, **cap tại quantile 99% AOV trên train** (D27) | Feature; fallback = median AOV của segment tính trên **train** khi `aov ≤ 0` (D23) |
 | `m` | Gross-margin rate, `0 ≤ m ≤ 1` | `[ASSUME]` `TBD` |
 | `d` | Discount rate của offer, `0 ≤ d < m` | Scenario |
 | `δ_i` | Assumed incremental probability lift do offer, `0 ≤ δ_i ≤ 1 − p_i` | Scenario — **không phải causal estimate** |
@@ -474,17 +477,40 @@ Diễn giải: khoản `p_i × V_i × d` là discount trao cho khách vốn sẽ
 
 ### 9.3 Scenarios (≥ 3, CAP R20)
 
-Giá trị cụ thể `TBD` tới D10/D11; phải là giá trị hiển thị, không hidden constants.
+Giá trị **đã chốt** (D10/D11, căn cứ benchmark: decision log §2b); hiển thị công khai trong config và dashboard, không có hidden constants.
 
 | Scenario | `d` | `δ` | `m` | `c` | Mục đích |
 |---|---|---|---|---|---|
-| Conservative | thấp `TBD` | thấp `TBD` | `TBD` | `TBD` | Downside |
-| Base | trung bình `TBD` | trung bình `TBD` | `TBD` | `TBD` | Planning |
-| Aggressive | cao `TBD` | cao `TBD` | `TBD` | `TBD` | Upside / high cost |
+| Conservative | 0.05 | 0.02 | 0.40 | £0.10 | Downside |
+| Base | 0.10 | 0.05 | 0.40 | £0.10 | Planning |
+| Aggressive | 0.20 | 0.10 | 0.40 | £0.10 | Upside / high cost |
 
 Sensitivity grid: `d × δ × K` (tối thiểu), thêm `m`, `c` nếu kịp. Output: heatmap EIM và vùng tham số làm `EIM` của Policy D ≤ Policy B (break-even).
 
 Mỗi scenario có `scenario_version`, owner (M3), nguồn lý do chọn giá trị (ví dụ benchmark ngành trích dẫn được, hoặc "team assumption").
+
+Sensitivity grid đã chốt: d ∈ {0.05, 0.10, 0.15, 0.20} × δ ∈ {0.02, 0.05, 0.10, 0.15, 0.20} × m ∈ {0.30, 0.40, 0.50} × c ∈ {£0.01, £0.10, £0.50} × lift ∈ {constant, persuadable} × value cap on/off × K ∈ {5, 10, 20%}. Đã tính trước: với `persuadable`, không khách nào có EIM > 0 ở cả 3 scenario chính. Đây là phát hiện phải báo cáo (decision log §2b).
+
+### 9.4 Ngưỡng hòa vốn và cấu trúc δ (review R-01, D26)
+
+Với δ hằng số:
+
+```text
+EIM_i > 0  ⇔  p_i < p*(V_i) = δ(m − d)/d − c/(d·V_i)
+```
+
+Hệ quả:
+
+- Policy D chỉ target khách có `p` thấp, và `p*` do tỷ số `δ/d` quyết định (Base, V = £300: `p* ≈ 0.133`).
+- Target count của D có thể < K, và phải được báo cáo.
+- Khi đánh giá theo `actual_outcome`, mọi policy nhắm khách **không** quay lại đều được lợi. Vì thế kết luận có thể do giả định tạo ra.
+
+Yêu cầu bắt buộc:
+
+1. `simulation.lift_structure` ∈ `constant` (MVP), `persuadable` (`δ_i = δ·4p_i(1−p_i)`), `segment` (hệ số theo segment trong config). Sensitivity phải chạy ít nhất `constant` **và** `persuadable`.
+2. Thêm Policy E (lowest-p) vào so sánh (§10).
+3. Báo cáo `p*` theo scenario và tỷ trọng EIM của top 1% khách (kiểm tra R-02).
+4. Sensitivity calibration: dịch `p` thêm ± (prevalence_test − mean_p_validation) (D25).
 
 ---
 
@@ -509,21 +535,29 @@ for scenario s, snapshot T0 (test):
 | B | Random K | 100 seeds (seed list trong config); report mean, P5–P95 |
 | C | Top-K theo RFM score | Không lọc EIM |
 | D | Top positive EIM ≤ K | Có thể target < K nếu ít khách có EIM > 0 — report rõ |
+| E | K khách có `p` thấp nhất | Baseline "chọn người ít mua nhất". D phải hơn E thì value weighting mới có giá trị (D26) |
+
+**Hai cơ sở đánh giá (D24):** lựa chọn luôn dựa trên `p` của model. Kết quả được báo cáo theo hai cách:
+
+- `model_p`: EIM tính bằng chính `p` — là niềm tin của model, dùng cho planning;
+- `actual_outcome` (validation/test): thay `p` bằng outcome thật `y` trong công thức. Đây là **số liệu chính** để so sánh policy, vì tránh việc D tự chấm điểm bằng chính con số dùng để chọn.
+
+Cả hai vẫn là simulation dưới assumption δ.
 
 **Business metrics per policy:** total EIM (K4), EIM/target (K5), expected cost (K3), target count (K1), value addressed (K2), discount leakage share, top-K capture của actual repeaters (dùng outcome test — chỉ để đánh giá, không dùng để chọn).
 
-**Kết luận chỉ được rút ra** nếu D > B và D ≥ C ổn định trên phần lớn sensitivity grid; nếu không, report trung thực.
+**Kết luận chỉ được rút ra** nếu, trên basis `actual_outcome`, D > B, D ≥ C và D > E ổn định trên phần lớn sensitivity grid, cho **cả** `constant` và `persuadable` lift structure. Nếu không, phải report trung thực.
 
 ---
 
 ## 11. Dashboard và executive communication
 
-**Công cụ:** `TBD` (D16) — Streamlit (khuyến nghị: tái lập từ code) hoặc Power BI/Tableau đọc CSV outputs.
+**Công cụ (D16, Decided):** Streamlit 1.64.0, chạy bằng `docker compose up dashboard` tại http://localhost:8501 (chỉ bind 127.0.0.1 vì không có authentication). Dashboard chỉ đọc `outputs/tables/*.csv`.
 
 **Views:**
 
 1. **Overview** — customer count, segment size/value, RFM distribution, repeat-risk profile (CAP R22: segment size/value, retention risk).
-2. **Promotion Scenario** — input: scenario, `d`, `δ`, `K`/`B`; output: 5 KPIs, policy comparison A–D, sensitivity heatmap.
+2. **Promotion Scenario** — input: scenario, `d`, `δ`, lift structure, `K`/`B`; output: 5 KPIs, policy comparison A–E (basis `actual_outcome` mặc định), sensitivity heatmap, **ngưỡng `p*`** và **target count của D so với K**.
 3. **Actionable Customer/Segment View** — scatter `p_i` × `V_i` tô màu theo action; bảng lọc được: `customer_id, segment, p, V, cost, EIM, rank, recommended_action`; export CSV.
 
 Banner cố định: *"Results are scenario-based simulations under stated assumptions. Online Retail II contains no promotion treatment/control; figures are not causal uplift or ROI."*
@@ -534,69 +568,17 @@ Banner cố định: *"Results are scenario-based simulations under stated assum
 
 ## 12. Artifact contracts và repository structure
 
-### 12.1 Repository
+Cấu trúc repo: Code Spec §2. Schema (cột, kiểu, key, check) của mọi artifact: Code Spec §5 và `src/retail_targeting/contracts.py`, được kiểm tra bằng `validate_frame` và `tests/test_contracts.py`. SPEC **không** lặp lại schema để tránh lệch.
 
-```text
-README.md
-project_config.yaml            # từ project_config.example.yaml
-requirements.txt               # pinned versions
-data/raw/ (gitignored)  data/processed/
-docs/  project_specification_topic1.md  implementation_plan_topic1.md
-       decision_log_topic1.md  traceability_matrix_topic1.md
-       data_dictionary.md  source_log.md  model_analysis_card.md  executive_brief.md
-src/   data/ features/ models/ decision/     # hàm dùng chung, notebooks gọi vào
-notebooks/ 01_data_understanding … 09_sensitivity_analysis
-tests/ test_cleaning.py test_leakage.py test_simulation.py test_contracts.py
-outputs/ (tables, figures, model/)
-dashboard/
-```
+| Artifact | Ý nghĩa nghiệp vụ | Producer | Consumer |
+|---|---|---|---|
+| `lines`, `orders` | Giao dịch đã làm sạch; đơn hàng hợp lệ | M1 | M1 |
+| `customer_snapshots` | Một dòng cho mỗi (khách, T0): features, target, RFM, segment, split | M1 (+ split của M2) | M2, M3 |
+| `customer_predictions` | Xác suất mua lại (raw + calibrated) | M2 | M3 |
+| `scenario_results`, `policy_comparison`, `sensitivity_results` | Kết quả policy × scenario × capacity × value_basis | M3 | Dashboard, brief |
+| `customer_targeting_table` | **Customer-level score table** (CAP R22): action TARGET/DO_NOT_TARGET | M3 | Dashboard, brief |
 
-### 12.2 Schemas
-
-**`customer_snapshots`** (producer M1 → M2, M3) — key `(customer_id, decision_date)`
-
-```text
-customer_id:str, decision_date:date, recency_days:int, frequency_orders:int,
-monetary_net:float, aov:float, tenure_days:int, return_rate:float,
-[optional features], r_score:int, f_score:int, m_score:int, rfm_score:int,
-customer_segment:str, cohort_month:str, repeat_purchase_90d:int, feature_version:str
-```
-
-**`customer_predictions`** (M2 → M3)
-
-```text
-customer_id, decision_date, split{train,val,test}, actual_repeat_purchase:int,
-predicted_repeat_probability:float, model_version, feature_version
-```
-
-**`scenario_results`** (M3)
-
-```text
-scenario, scenario_version, policy{A,B,C,D}, decision_date, capacity_k, budget_b,
-target_count, expected_future_value, expected_promotion_cost, simulated_eim,
-eim_per_target, discount_leakage_share, seed(nullable), n_seeds(nullable)
-```
-
-**`policy_comparison`** (M3) — aggregate của `scenario_results` theo scenario × policy × K: mean, p5, p95.
-
-**`sensitivity_results`** (M3)
-
-```text
-scenario_version, discount_rate, incremental_lift, gross_margin, contact_cost,
-capacity_k, policy, simulated_eim, eim_per_target, target_count
-```
-
-**`customer_targeting_table`** (M3 → dashboard, brief) — deliverable "customer-level score table" (CAP R22)
-
-```text
-customer_id, decision_date, scenario, policy, customer_segment, recency_days,
-frequency_orders, monetary_net, rfm_score, repeat_purchase_probability,
-customer_value_proxy, discount_rate, incremental_lift_assumption,
-expected_promotion_cost, simulated_expected_incremental_margin, target_rank,
-recommended_action{TARGET,DO_NOT_TARGET}, model_version, scenario_version
-```
-
-**Quy tắc single source of truth:** M2 không tính lại Monetary; M3 không train lại model; mọi sửa logic phải sửa tại producer và bump version. `tests/test_contracts.py` kiểm tra cột, dtype, key unique, không null ở cột bắt buộc.
+**Quy tắc single source of truth:** M2 không tính lại Monetary; M3 không train lại model; mọi sửa logic phải sửa tại producer và bump version.
 
 ---
 
@@ -638,8 +620,8 @@ Baseline-complete (cuối Week 3) cần mục 1–13; final (Week 6) cần tất
 13. [ ] PR-AUC, ROC-AUC, Brier/reliability, top-K report trên validation.
 14. [ ] Error analysis theo segment/cohort/time.
 15. [ ] `V_i, m, d, δ, c, K/B` và công thức EIM công khai; `test_simulation.py` pass.
-16. [ ] ≥ 3 scenarios + sensitivity grid.
-17. [ ] Policy A/B/C/D so sánh ở cùng population và capacity; B có ≥ 100 seeds.
+16. [ ] ≥ 3 scenarios + sensitivity grid, gồm lift structure `constant` và `persuadable`; báo cáo `p*`.
+17. [ ] Policy A/B/C/D/E so sánh ở cùng population và capacity, trên basis `actual_outcome`; B có ≥ 100 seeds.
 18. [ ] `customer_targeting_table` đúng schema, `test_contracts.py` pass.
 19. [ ] Dashboard 3–5 KPIs + actionable view + banner non-causal.
 20. [ ] Executive brief ≤ 2 trang.

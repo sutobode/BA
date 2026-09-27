@@ -1,4 +1,4 @@
-# Pinned — verified in .venv on Python 3.13.13 (2026-09-27)
+# Pinned - verified on Python 3.13 (2026-09-27)
 pandas==3.0.5
 numpy==2.5.1
 scikit-learn==1.9.1
@@ -9,4 +9,4 @@ PyYAML==6.0.2
 joblib==1.6.0
 matplotlib==3.11.1
 pytest==8.3.4
-# Dashboard (W5, D16) — add a pinned streamlit version when the tool is chosen
+streamlit==1.64.0

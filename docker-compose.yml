@@ -1,0 +1,61 @@
+# Usage (from repo root):
+#   docker compose build
+#   docker compose run --rm test                         # pytest
+#   docker compose run --rm pipeline run ingest          # any CLI stage: ingest|clean|snapshots|train|evaluate|simulate|sensitivity|all
+#   docker compose run --rm pipeline validate-config --require-scenarios
+#   docker compose up dashboard                          # http://localhost:8501
+#   docker compose --profile dev up notebook             # http://localhost:8888 (token in logs)
+#
+# Source code, config, data and outputs are bind-mounted: edits on the host are
+# visible immediately; results land in ./data and ./outputs on the host.
+
+x-app: &app
+  build:
+    context: .
+    args:
+      INSTALL_DEV: "false"
+  image: retail-targeting:latest
+  working_dir: /app
+  volumes:
+    - ./src:/app/src
+    - ./tests:/app/tests
+    - ./dashboard:/app/dashboard
+    - ./project_config.yaml:/app/project_config.yaml:ro
+    - ./project_config.example.yaml:/app/project_config.example.yaml:ro
+    - ./data:/app/data
+    - ./outputs:/app/outputs
+
+services:
+  test:
+    <<: *app
+    command: ["python", "-m", "pytest", "-q"]
+
+  pipeline:
+    <<: *app
+    entrypoint: ["python", "-m", "retail_targeting"]
+    command: ["validate-config"]
+
+  dashboard:
+    <<: *app
+    command: ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+    ports:
+      - "127.0.0.1:8501:8501"   # local only; the dashboard has no authentication
+
+  notebook:
+    <<: *app
+    profiles: ["dev"]
+    build:
+      context: .
+      args:
+        INSTALL_DEV: "true"
+    image: retail-targeting-dev:latest
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./notebooks:/app/notebooks
+      - ./project_config.yaml:/app/project_config.yaml:ro
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--notebook-dir=/app"]
+    ports:
+      - "127.0.0.1:8888:8888"

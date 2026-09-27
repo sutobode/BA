@@ -3,7 +3,7 @@ import pandas as pd
 
 from helpers import todo
 from retail_targeting.decision.policy import (
-    capacity_from_fraction, select_policy_a, select_policy_b, select_policy_c, select_policy_d,
+    capacity_from_fraction, select_policy_a, select_policy_b, select_policy_c, select_policy_d, select_policy_e,
 )
 
 
@@ -37,6 +37,12 @@ def test_policy_b_reproducible_and_k():
 def test_policy_c_ties_by_monetary():
     sel = select_policy_c(_frame(), 2)
     assert _frame().loc[sel, "customer_id"].tolist() == ["c1", "c3"]
+
+
+@todo
+def test_policy_e_lowest_p():
+    f = _frame().assign(p=[0.9, 0.1, 0.1, 0.5, 0.3])
+    assert f.loc[select_policy_e(f, 2), "customer_id"].tolist() == ["c2", "c3"]  # tie → customer_id asc
 
 
 @todo

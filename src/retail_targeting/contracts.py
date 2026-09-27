@@ -155,13 +155,14 @@ SCHEMAS: dict[str, Schema] = {
     "scenario_results": Schema(
         "scenario_results",
         (_c("scenario", "string"), _c("scenario_version", "string"), _c("policy", "string"),
+         _c("lift_structure", "string"),
          _c("decision_date", "datetime"), _c("value_basis", "string"), _c("capacity_fraction", "float"),
          _c("capacity_k", "int"), _c("budget", "float", True), _c("seed", "int", True),
          _c("target_count", "int"), _c("expected_future_value", "float"),
          _c("expected_promotion_cost", "float"), _c("simulated_eim", "float"),
          _c("eim_per_target", "float", True), _c("discount_leakage_share", "float", True),
          _c("actual_repeat_rate_targeted", "float", True)),
-        key=("scenario", "policy", "decision_date", "capacity_fraction", "seed", "value_basis"),
+        key=("scenario", "policy", "lift_structure", "decision_date", "capacity_fraction", "seed", "value_basis"),
     ),
     "customer_targeting_table": Schema(
         "customer_targeting_table",

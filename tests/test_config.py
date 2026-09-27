@@ -43,6 +43,9 @@ def _mutate(raw, fn):
     (lambda r: r["model"].update(log1p_features=["not_a_feature"]), "log1p_features"),
     (lambda r: r["simulation"]["scenarios"].pop("base"), "at least 3"),
     (lambda r: r["source"].update(sha256_xlsx="abc"), "sha256_xlsx"),
+    (lambda r: r["simulation"].update(lift_structure="magic"), "lift_structure"),
+    (lambda r: r["simulation"].update(value_cap_quantile=1.5), "value_cap_quantile"),
+    (lambda r: r["simulation"].update(lift_structure="segment", segment_lift_multipliers={}), "segment_lift_multipliers"),
     (lambda r: r.pop("model"), "missing section"),
 ])
 def test_invalid_configs_rejected(raw_config_dict, mutation, message):
@@ -50,10 +53,19 @@ def test_invalid_configs_rejected(raw_config_dict, mutation, message):
         validate_config(_mutate(raw_config_dict, mutation))
 
 
+def _null_scenarios(raw):
+    r = copy.deepcopy(raw)
+    for s in r["simulation"]["scenarios"].values():
+        s.update(discount_rate=None)
+    return r
+
+
 def test_null_scenarios_rejected_when_required(raw_config_dict):
-    validate_config(raw_config_dict)  # allowed for data/model stages
+    validate_config(raw_config_dict, require_scenarios=True)  # D10/D11 frozen in config
+    raw = _null_scenarios(raw_config_dict)
+    validate_config(raw)  # null allowed for data/model stages
     with pytest.raises(ConfigError, match="still null"):
-        validate_config(raw_config_dict, require_scenarios=True)
+        validate_config(raw, require_scenarios=True)
 
 
 def test_invalid_scenario_values(raw_config_dict):

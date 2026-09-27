@@ -12,6 +12,21 @@
 
 ## 1. Tổng quan milestone
 
+### Trạng thái (cập nhật 2026-09-27)
+
+| Task | Trạng thái | Evidence |
+|---|---|---|
+| T1.1 Repo & env | ✅ Done | `pyproject.toml`, `requirements.txt`, `.venv`, pytest 39 pass / 31 xfail |
+| T1.2 Source & log | 🟡 Một phần: data đã tải, checksum và `docs/source_log.md` xong; `download_raw` chưa code | `docs/source_log.md` |
+| T1.3 Profiling | ✅ Done (script tạm ở `scripts/profiling/`; `quality.profile_raw` chưa code) | `docs/data_profile_topic1.md` |
+| T1.4 Framing | 🟡 Nội dung xong, chờ team sign-off | SPEC §1 |
+| T1.5 Window/split | ✅ Số liệu thật đã xác nhận (16 T0, kích thước từng split); chờ freeze D05–D07 | Code Spec §3.1 |
+| T1.6 Scenario draft | 🟡 `compute_eim`, `incremental_lift`, `break_even_p` + test xong; giá trị Proposed (D10/D11) | `decision/simulation.py` |
+| T2.2 Data dictionary | 🟡 v0 (raw đầy đủ) | `docs/data_dictionary.md` |
+| Còn lại | ⬜ Chưa bắt đầu | — |
+
+Thay đổi từ review v1 (`review_v1_topic1.md`): T4.4 phải chạy thêm **Policy E** và báo cáo `p*`; T5.1 phải chạy sensitivity theo **lift structure** (`constant` + `persuadable`), value cap và dịch calibration; T4.1 phải báo cáo calibration-in-the-large theo snapshot test (D25–D27).
+
 | Tuần | Trọng tâm | Checkpoint (gate) | Map capstone |
 |---|---|---|---|
 | 1 | Framing + data readiness | **G1** Problem statement + data readiness review | Week 1 CAP |
@@ -85,7 +100,7 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 **T1.2 — Source acquisition & source log**
 - Owner: M1 · Input: CAP tr.3, tr.11; <https://archive.ics.uci.edu/dataset/502/online+retail+ii>; SPEC §3.1 (metadata + checksum đã verify 2026-09-27) · Depends: T1.1
 - Action: tải lại từ link trên, so SHA-256 với SPEC §3.1; ghi ngày tải chính thức; viết script tải lại.
-- Output: `docs/source_log.md`, `src/data/download.py`, raw file (local).
+- Output: `docs/source_log.md`, `retail_targeting.data.ingest.download_raw`, raw file (local).
 - Acceptance: mọi field §3.1 SPEC có giá trị (không TBD); script tải lại cho cùng checksum.
 - Risk: source không khả dụng → ghi blocker, dùng mirror chính thức nếu có và ghi chú.
 - Validation: chạy script lần 2, so checksum.
@@ -115,7 +130,7 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 **T1.6 — Scenario parameter draft**
 - Owner: M3 · Input: SPEC §9 · Depends: —
 - Action: đề xuất khoảng giá trị `m, d, δ, c, K` cho 3 scenarios, kèm lý do/nguồn; skeleton hàm `compute_eim()` + unit test công thức.
-- Output: `src/decision/simulation.py` skeleton, `tests/test_simulation.py`, D09–D11 Proposed.
+- Output: `src/retail_targeting/decision/simulation.py` skeleton, `tests/test_simulation.py`, D09–D11 Proposed.
 - Acceptance: test `EIM == M1 − M0`, `δ_i ≤ 1 − p_i`, EIM = −c khi δ=0 & d=0 pass.
 
 **Gate G1 (cuối W1):** source log hoàn chỉnh; profiling report v0; framing frozen; proposal window/split; parameter draft. Evidence: files + decision log.
@@ -124,7 +139,7 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 
 **T2.1 — Cleaning rules CR-01…CR-12**
 - Owner: M1 · Input: T1.3 · Depends: T1.3
-- Action: kiểm chứng từng rule trên data thật; quyết định non-product codes (D04); implement `src/data/clean.py`.
+- Action: kiểm chứng từng rule trên data thật; quyết định non-product codes (D04); implement `src/retail_targeting/data/clean.py`.
 - Output: `transactions_clean`, bảng reconciliation (rows/customers/revenue trước–sau mỗi rule).
 - Acceptance: mỗi rule có count trước/sau; không có row nào bị loại mà không có rule; tổng net revenue reconcile.
 - Validation: `tests/test_cleaning.py` (không quantity=0, không price≤0 trong purchase events, không missing customer_id trong customer-level, không duplicate exact).
@@ -144,8 +159,8 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 **T2.4 — Snapshot builder prototype**
 - Owner: M1 · Input: SPEC §5 · Depends: T2.1, T1.5
 - Action: implement thuật toán SPEC §5 cho RFM + AOV + target; xuất prototype 2–3 snapshot.
-- Output: `src/features/snapshots.py`, `customer_snapshots` prototype.
-- Acceptance: đúng schema SPEC §12.2; assertion `max(hist.ts) < T0` trong code.
+- Output: `src/retail_targeting/features/snapshots.py`, `customer_snapshots` prototype.
+- Acceptance: đúng schema Code Spec §5.3; assertion `max(hist.ts) < T0` trong code.
 - Validation: `tests/test_contracts.py` (schema/dtype/key unique).
 
 **T2.5 — Freeze target, windows, split, purge**
@@ -163,13 +178,13 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 **T2.7 — Benchmark & modeling skeleton**
 - Owner: M2 · Depends: T2.4
 - Action: pipeline sklearn + RFM benchmark trên prototype; hàm `evaluate()` trả PR-AUC, ROC-AUC, Brier, top-K.
-- Output: `src/models/train.py`, `src/models/evaluate.py`.
+- Output: `src/retail_targeting/models/train.py`, `src/retail_targeting/models/evaluate.py`.
 - Acceptance: chạy end-to-end trên prototype.
 
 **T2.8 — Value proxy & simulator skeleton**
 - Owner: M3 · Depends: T2.4, T1.6
 - Action: `V_i = aov`, fallback median theo segment fit trên train; policy A–D function dùng `p_i` giả (ví dụ từ RFM benchmark) để test luồng.
-- Output: `src/decision/policy.py`.
+- Output: `src/retail_targeting/decision/policy.py`.
 - Acceptance: policy không vượt K, không chọn EIM ≤ 0 (D), B tái lập với seed.
 
 **Gate G2:** data dictionary v1; cleaning + tests pass; snapshot prototype; config có split frozen; leakage tests pass (kể cả negative test); skeleton M2/M3 chạy được.
@@ -231,7 +246,7 @@ M2 và M3 bắt đầu ngay khi có **prototype** (dữ liệu mẫu đúng sche
 
 **T4.4 — Policy comparison (validation)**
 - Owner: M3 · Depends: T4.1, T4.3
-- Action: A–D × 3 scenarios × K grid; B với 100 seeds.
+- Action: A–E × 3 scenarios × K grid; B với 100 seeds.
 - Output: `policy_comparison.csv`, `notebooks/08_policy_comparison`.
 - Acceptance: cùng population/K; B có mean, P5, P95; discount leakage share cho C và D.
 
@@ -330,10 +345,10 @@ Bảng này bổ sung đủ các trường cho mọi task ở mục 4. Nếu có
 | T4.1 | M2 | T3.4 | Reliability + calibration | `calibration_results` | Before/after + D08 | T3.4 | Overfit calibration | Brier validation before/after |
 | T4.2 | M2 | T4.1 | Top-K + error analysis 3 chiều | Notebook 06 | ≥ 2 điểm yếu nêu rõ | T4.1 | — | M1 review theo segment |
 | T4.3 | M3 | T1.6, T4.2 | Freeze 3 scenarios | Config scenarios v1 | Không TBD; có rationale | T1.6 | Tranh cãi tham số | ALL sign-off trong D-log |
-| T4.4 | M3 | T4.1, T4.3 | A–D × scenarios × K; B 100 seeds | `policy_comparison.csv` | Cùng population/K; P5–P95 cho B | T4.3 | So sánh không công bằng | Assert cùng K, cùng population id set |
+| T4.4 | M3 | T4.1, T4.3 | A–E × scenarios × K; B 100 seeds; 2 value_basis; báo cáo p* | `policy_comparison.csv` | Cùng population/K; P5–P95 cho B; D vs E báo cáo rõ | T4.3 | So sánh không công bằng | Assert cùng K, cùng population id set |
 | T4.5 | M3 | T4.4 | Xuất targeting table | `customer_targeting_table` v0 | Schema đúng; TARGET ≤ K | T4.4 | — | `test_contracts.py` |
 | T4.6 | ALL | T4.2, T4.4 | Review H1–H4, logic segment ↔ EIM | Ghi chú D-log | Mỗi H có kết luận + evidence | T4.2, T4.4 | Kết luận quá tay | Claim review theo SPEC §1.10 |
-| T5.1 | M3 | G4 | Sensitivity grid + break-even | `sensitivity_results.csv`, heatmaps | ≥ 3 giá trị/trục; kết luận robustness | G4 | Grid quá lớn | Số dòng output = tích số giá trị grid |
+| T5.1 | M3 | G4 | Sensitivity grid × lift structure (constant, persuadable) + value cap on/off + calibration shift; break-even | `sensitivity_results.csv`, heatmaps | ≥ 3 giá trị/trục; kết luận robustness chỉ khi đúng cho cả 2 lift structure | G4 | Grid quá lớn | Số dòng output = tích số giá trị grid |
 | T5.2 | M2 | G4 (frozen) | Final test một lần | Test metrics, predictions, scenario test | Không đổi lựa chọn sau đó | G4 | Nhìn test sớm | Log timestamp lần đọc test |
 | T5.3 | M3 | T5.2 | Build 3 views, 5 KPIs, banner | `dashboard/` | KPI khớp CSV; đổi K đúng | T5.2 | Tốn thời gian | So KPI dashboard vs `scenario_results` |
 | T5.4 | M2 | T5.2, T2.3 | Viết model/analysis card | `model_analysis_card.md` | Đủ mục SPEC §13 | T5.2 | Thiếu ethics/bias | Checklist template |

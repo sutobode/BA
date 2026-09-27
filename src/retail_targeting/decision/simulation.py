@@ -47,12 +47,36 @@ def scenarios_from_config(cfg: Config) -> list[ScenarioParams]:
     return out
 
 
-def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams) -> pd.DataFrame:
+def incremental_lift(p: ArrayLike, params: ScenarioParams, structure: str = "constant",
+                     segments: ArrayLike | None = None,
+                     multipliers: dict[str, float] | None = None) -> np.ndarray:
+    """Per-customer assumed lift δ_i BEFORE capping at 1 − p (D26).
+
+    constant: δ · persuadable: δ·4p(1−p) (0 for certain buyers and certain non-buyers)
+    · segment: δ·multipliers.get(segment, 1.0). All are assumptions, not estimates.
+    """
+    p_arr = np.asarray(p, dtype=float)
+    delta = params.incremental_lift
+    if structure == "constant":
+        return np.full_like(p_arr, delta)
+    if structure == "persuadable":
+        return delta * 4.0 * p_arr * (1.0 - p_arr)
+    if structure == "segment":
+        if segments is None or multipliers is None:
+            raise ValueError("segment lift requires segments and multipliers")
+        mult = np.array([float(multipliers.get(s, 1.0)) for s in np.asarray(segments)], dtype=float)
+        return delta * mult
+    raise ValueError(f"unknown lift structure {structure!r}")
+
+
+def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams, *,
+                lift: ArrayLike | None = None) -> pd.DataFrame:
     """Per-customer expected margins under one scenario.
 
     ``p`` is the natural repeat probability (model output, or the realized 0/1
     outcome when ``value_basis == "actual_outcome"``); ``value`` is V_i, the
-    expected net value of one order.
+    expected net value of one order; ``lift`` is δ_i before capping
+    (default: constant ``params.incremental_lift``, see :func:`incremental_lift`).
 
     Returns columns: delta, m0, m1, eim, expected_cost, expected_value, leakage_discount.
     Invariant (INV-10): eim == m1 - m0.
@@ -66,9 +90,12 @@ def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams) -> pd.Da
         raise ValueError("p must be in [0, 1] with no NaN")
     if np.isnan(v_arr).any():
         raise ValueError("value must not contain NaN")
+    lift_arr = np.full_like(p_arr, params.incremental_lift) if lift is None else np.asarray(lift, dtype=float)
+    if lift_arr.shape != p_arr.shape or np.any(lift_arr < 0):
+        raise ValueError("lift must have the shape of p and be >= 0")
 
     d, m, c = params.discount_rate, params.gross_margin, params.contact_cost
-    delta = np.minimum(params.incremental_lift, 1.0 - p_arr)
+    delta = np.minimum(lift_arr, 1.0 - p_arr)
     m0 = p_arr * v_arr * m
     m1 = (p_arr + delta) * v_arr * (m - d) - c
     eim = m1 - m0
@@ -83,6 +110,17 @@ def compute_eim(p: ArrayLike, value: ArrayLike, params: ScenarioParams) -> pd.Da
     })
 
 
+def break_even_p(value: ArrayLike, params: ScenarioParams) -> np.ndarray:
+    """p* such that EIM > 0 ⇔ p < p* under constant lift (SPEC §9.4):
+    p* = δ(m − d)/d − c/(d·V). Requires discount_rate > 0."""
+    params.validate()
+    if params.discount_rate <= 0:
+        raise ValueError("break-even p* is undefined for discount_rate == 0")
+    v = np.asarray(value, dtype=float)
+    d, m, c, delta = params.discount_rate, params.gross_margin, params.contact_cost, params.incremental_lift
+    return delta * (m - d) / d - c / (d * v)
+
+
 def fit_value_fallback(train: pd.DataFrame) -> dict[str, float]:
     """Median positive ``aov`` per ``customer_segment`` on TRAIN rows only, plus key '__all__' (D23).
 
@@ -91,8 +129,15 @@ def fit_value_fallback(train: pd.DataFrame) -> dict[str, float]:
     raise NotImplementedError("M3 — CODE SPEC §6.13")
 
 
-def value_proxy(df: pd.DataFrame, fallback: dict[str, float]) -> tuple[pd.Series, pd.Series]:
-    """V_i = aov if aov > 0 else fallback[segment] (or fallback['__all__']).
+def fit_value_cap(train: pd.DataFrame, quantile: float | None) -> float | None:
+    """Quantile of positive ``aov`` on TRAIN rows only (D27); None if quantile is None.
+    Must raise ValueError if ``train`` contains rows whose ``split`` != "train" (INV-09)."""
+    raise NotImplementedError("M3 — CODE SPEC §6.13")
+
+
+def value_proxy(df: pd.DataFrame, fallback: dict[str, float],
+                cap: float | None = None) -> tuple[pd.Series, pd.Series]:
+    """V_i = aov if aov > 0 else fallback[segment] (or fallback['__all__']); then min(V_i, cap).
 
     Returns (value, value_is_fallback) aligned with ``df.index``.
     """
