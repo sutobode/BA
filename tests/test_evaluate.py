@@ -5,12 +5,10 @@ from helpers import todo
 from retail_targeting.models.evaluate import classification_metrics, top_k_count
 
 
-@todo
 def test_top_k_count():
     assert top_k_count(100, 0.05) == 5 and top_k_count(10, 0.01) == 1
 
 
-@todo
 def test_classification_metrics_hand_example():
     y = np.array([1, 0, 1, 0])
     s = np.array([0.9, 0.8, 0.7, 0.1])
@@ -21,7 +19,6 @@ def test_classification_metrics_hand_example():
     assert "brier" in m
 
 
-@todo
 def test_no_brier_for_unbounded_score():
     m = classification_metrics(np.array([1, 0]), np.array([12.0, 3.0]), [0.5])
     assert "brier" not in m and m["roc_auc"] == 1.0

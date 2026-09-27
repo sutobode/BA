@@ -4,28 +4,110 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+_STD_CODE = r"^\d{5}[A-Za-z]{0,2}$"
 
 
 def profile_raw(raw: pd.DataFrame) -> dict:
     """Metrics of docs/data_profile_topic1.md §1–§5 (rows, date range, missing id %, prefixes,
     negative qty, zero/negative price, special stock codes, invoices per month)."""
-    raise NotImplementedError("M1 — CODE SPEC §6.5")
+    inv = raw["Invoice"].astype("string").fillna("")
+    value = raw["Quantity"] * raw["Price"]
+    positive = value > 0
+    miss = raw["Customer ID"].isna()
+    is_c = inv.str.startswith("C").astype(bool)
+    sc = raw["StockCode"].astype("string").fillna("")
+    special = ~sc.str.match(_STD_CODE).astype(bool)
+    per_month = raw.set_index("InvoiceDate").resample("MS")["Invoice"].nunique()
+    return {
+        "rows": int(len(raw)),
+        "exact_duplicate_rows": int(raw.duplicated().sum()),
+        "date_min": str(raw["InvoiceDate"].min()),
+        "date_max": str(raw["InvoiceDate"].max()),
+        "unique_customers": int(raw["Customer ID"].nunique()),
+        "unique_invoices": int(inv.nunique()),
+        "countries": int(raw["Country"].nunique()),
+        "missing_customer_rows_pct": round(float(miss.mean() * 100), 2),
+        "missing_customer_positive_revenue_pct": round(float(value[positive & miss].sum() / value[positive].sum() * 100), 2),
+        "missing_description_rows": int(raw["Description"].isna().sum()),
+        "invoice_prefix_counts": inv.str.extract(r"^([A-Za-z]*)")[0].replace("", "(none)").value_counts().to_dict(),
+        "cancellation_rows": int(is_c.sum()),
+        "negative_qty_not_cancellation_rows": int(((raw["Quantity"] < 0) & ~is_c).sum()),
+        "zero_quantity_rows": int((raw["Quantity"] == 0).sum()),
+        "zero_price_rows": int((raw["Price"] == 0).sum()),
+        "negative_price_rows": int((raw["Price"] < 0).sum()),
+        "special_stock_code_rows": int(special.sum()),
+        "special_stock_codes": int(sc[special].nunique()),
+        "invoices_per_month": {str(k.date()): int(v) for k, v in per_month.items()},
+    }
 
 
 def customer_coverage(lines: pd.DataFrame) -> pd.DataFrame:
     """Per month and country: rows, pct_missing_customer, pct_positive_revenue_missing_customer."""
-    raise NotImplementedError("M1 — CODE SPEC §6.5")
+    df = lines.assign(month=lines["invoice_ts"].dt.to_period("M").astype(str),
+                      missing=lines["customer_id"].isna(),
+                      pos_value=lines["line_value"].clip(lower=0))
+    df["pos_value_missing"] = df["pos_value"].where(df["missing"], 0.0)
+    out = []
+    for dim in ("month", "country"):
+        g = df.groupby(dim, observed=True)
+        t = pd.DataFrame({
+            "rows": g.size(),
+            "pct_missing_customer": g["missing"].mean() * 100,
+            "pct_positive_revenue_missing_customer": g["pos_value_missing"].sum() / g["pos_value"].sum().replace(0, np.nan) * 100,
+        }).reset_index().rename(columns={dim: "value"})
+        t.insert(0, "dimension", dim)
+        out.append(t)
+    return pd.concat(out, ignore_index=True)
 
 
 def reconcile(raw: pd.DataFrame, lines: pd.DataFrame, orders: pd.DataFrame) -> pd.DataFrame:
     """INV-03: Σ raw line value == Σ over line_type (after CR-07), and
     Σ orders.order_value == Σ lines (purchase + adjustment with customer id, minus dropped orders).
     Returns a table of check, expected, actual, abs_diff, status (tolerance 0.01)."""
-    raise NotImplementedError("M1 — CODE SPEC §6.5")
+    dedup = raw.drop_duplicates()
+    raw_total = float((dedup["Quantity"] * dedup["Price"]).sum())
+    lines_total = float(lines.groupby("line_type", observed=True)["line_value"].sum().sum())
+    sel = lines[lines["line_type"].isin(["purchase", "adjustment"]) & lines["customer_id"].notna()]
+    kept = sel[sel["invoice"].isin(orders["order_id"])]
+    rows = [
+        ("raw value (after CR-07) == sum over line types", raw_total, lines_total),
+        ("orders value == purchase+adjustment lines of kept orders", float(kept["line_value"].sum()),
+         float(orders["order_value"].sum())),
+        ("rows: raw after CR-07 == lines", float(len(dedup)), float(len(lines))),
+    ]
+    out = pd.DataFrame(rows, columns=["check", "expected", "actual"])
+    out["abs_diff"] = (out["expected"] - out["actual"]).abs()
+    out["status"] = np.where(out["abs_diff"] < 0.01, "PASS", "FAIL")
+    return out
 
 
 def write_quality_report(profile: dict, coverage: pd.DataFrame, cleaning_log: pd.DataFrame,
-                         path: Path) -> None:
+                         path: Path, reconciliation: pd.DataFrame | None = None) -> None:
     """Write outputs/reports/data_quality_report.md (+ CSV siblings)."""
-    raise NotImplementedError("M1 — CODE SPEC §6.5")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    coverage.to_csv(path.with_name("customer_coverage.csv"), index=False, float_format="%.4f")
+    cleaning_log.to_csv(path.with_name("cleaning_log.csv"), index=False, float_format="%.2f")
+    lines = ["# Data Quality Report — Online Retail II", "",
+             "Generated by `retail_targeting.data.quality.write_quality_report`.", "", "## Profile (raw, after CR-00)", "",
+             "| Metric | Value |", "|---|---|"]
+    for k, v in profile.items():
+        if k != "invoices_per_month":
+            lines.append(f"| {k} | {v} |")
+    lines += ["", "## Cleaning log", "", _md_table(cleaning_log)]
+    if reconciliation is not None:
+        lines += ["", "## Reconciliation (INV-03)", "", _md_table(reconciliation)]
+    by_country = coverage[coverage["dimension"] == "country"].sort_values("rows", ascending=False).head(10)
+    lines += ["", "## Customer-ID coverage (top 10 countries by rows)", "", _md_table(by_country)]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _md_table(df: pd.DataFrame) -> str:
+    cols = list(df.columns)
+    rows = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
+    for _, r in df.iterrows():
+        rows.append("| " + " | ".join(f"{v:.4f}" if isinstance(v, float) else str(v) for v in r) + " |")
+    return "\n".join(rows)

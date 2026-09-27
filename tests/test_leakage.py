@@ -35,7 +35,6 @@ def _frames(extra_orders=()):
     return orders, lines
 
 
-@todo
 def test_future_orders_do_not_change_features(cfg):
     base = build_snapshot(*_frames(), T0, cfg).set_index("customer_id")
     future = [("o3", "10001", "2010-06-01 00:00", "purchase", 500.0, "20009", 50),   # exactly at T0 → outcome
@@ -47,7 +46,6 @@ def test_future_orders_do_not_change_features(cfg):
     assert with_future.loc["10001", "label_future_value_90d"] == pytest.approx(500.0)
 
 
-@todo
 def test_order_after_outcome_window_is_ignored(cfg):
     late = [("o5", "10001", "2010-08-30 00:00", "purchase", 50.0, "20001", 5)]  # T0 + 90d → excluded
     snap = build_snapshot(*_frames(late), T0, cfg).set_index("customer_id")

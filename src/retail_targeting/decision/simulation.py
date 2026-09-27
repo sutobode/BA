@@ -126,13 +126,22 @@ def fit_value_fallback(train: pd.DataFrame) -> dict[str, float]:
 
     Must raise ValueError if ``train`` contains rows whose ``split`` != "train" (INV-09).
     """
-    raise NotImplementedError("M3 — CODE SPEC §6.13")
+    if "split" not in train or (train["split"] != "train").any():
+        raise ValueError("fit_value_fallback: only split == 'train' rows are allowed (INV-09)")
+    pos = train[train["aov"] > 0]
+    fb = {str(k): float(v) for k, v in pos.groupby("customer_segment", observed=True)["aov"].median().items()}
+    fb["__all__"] = float(pos["aov"].median())
+    return fb
 
 
 def fit_value_cap(train: pd.DataFrame, quantile: float | None) -> float | None:
     """Quantile of positive ``aov`` on TRAIN rows only (D27); None if quantile is None.
     Must raise ValueError if ``train`` contains rows whose ``split`` != "train" (INV-09)."""
-    raise NotImplementedError("M3 — CODE SPEC §6.13")
+    if quantile is None:
+        return None
+    if "split" not in train or (train["split"] != "train").any():
+        raise ValueError("fit_value_cap: only split == 'train' rows are allowed (INV-09)")
+    return float(np.quantile(train.loc[train["aov"] > 0, "aov"].to_numpy(dtype=float), quantile))
 
 
 def value_proxy(df: pd.DataFrame, fallback: dict[str, float],
@@ -141,4 +150,10 @@ def value_proxy(df: pd.DataFrame, fallback: dict[str, float],
 
     Returns (value, value_is_fallback) aligned with ``df.index``.
     """
-    raise NotImplementedError("M3 — CODE SPEC §6.13")
+    seg = df["customer_segment"] if "customer_segment" in df else pd.Series("__all__", index=df.index)
+    fb = seg.astype(str).map(lambda s: fallback.get(s, fallback["__all__"])).astype(float)
+    is_fb = ~(df["aov"] > 0)
+    value = df["aov"].astype(float).where(~is_fb, fb)
+    if cap is not None:
+        value = value.clip(upper=cap)
+    return value.astype(float), is_fb.astype(bool)

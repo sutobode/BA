@@ -74,7 +74,6 @@ def test_scenarios_from_config(cfg, raw_config_dict):
         scenarios_from_config(Config(raw=raw, root=REPO_ROOT))
 
 
-@todo
 def test_value_fallback_train_only():
     df = pd.DataFrame({"split": ["train", "validation"], "customer_segment": ["A", "A"], "aov": [10.0, 20.0]})
     with pytest.raises(ValueError):
@@ -84,24 +83,21 @@ def test_value_fallback_train_only():
     assert fb["A"] == 20.0 and "__all__" in fb
 
 
-@todo
 def test_value_proxy_uses_fallback_for_non_positive_aov():
     df = pd.DataFrame({"customer_segment": ["A", "B"], "aov": [12.0, -3.0]})
     v, is_fb = value_proxy(df, {"A": 20.0, "__all__": 15.0})
     assert list(v) == [12.0, 15.0] and list(is_fb) == [False, True]
 
 
-@todo
 def test_value_proxy_cap():
     df = pd.DataFrame({"customer_segment": ["A", "A"], "aov": [12.0, 5000.0]})
     v, _ = value_proxy(df, {"__all__": 15.0}, cap=1000.0)
     assert list(v) == [12.0, 1000.0]
 
 
-@todo
 def test_value_cap_train_only():
     tr = pd.DataFrame({"split": ["train"] * 101, "aov": [float(i) for i in range(101)]})
-    assert fit_value_cap(tr, 0.99) == pytest.approx(99.0)
+    assert fit_value_cap(tr, 0.99) == pytest.approx(99.01)  # quantile over aov > 0 (1..100): 1 + 0.99*99
     assert fit_value_cap(tr, None) is None
     with pytest.raises(ValueError):
         fit_value_cap(tr.assign(split="test"), 0.99)

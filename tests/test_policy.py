@@ -17,35 +17,29 @@ def _frame():
     })
 
 
-@todo
 def test_capacity():
     assert capacity_from_fraction(2768, 0.10) == 276 and capacity_from_fraction(3, 0.05) == 1
 
 
-@todo
 def test_policy_a_selects_nobody():
     assert not select_policy_a(_frame()).any()
 
 
-@todo
 def test_policy_b_reproducible_and_k():
     a, b = select_policy_b(_frame(), 2, seed=7), select_policy_b(_frame(), 2, seed=7)
     assert a.sum() == 2 and np.array_equal(a, b)
 
 
-@todo
 def test_policy_c_ties_by_monetary():
     sel = select_policy_c(_frame(), 2)
     assert _frame().loc[sel, "customer_id"].tolist() == ["c1", "c3"]
 
 
-@todo
 def test_policy_e_lowest_p():
     f = _frame().assign(p=[0.9, 0.1, 0.1, 0.5, 0.3])
     assert f.loc[select_policy_e(f, 2), "customer_id"].tolist() == ["c2", "c3"]  # tie → customer_id asc
 
 
-@todo
 def test_policy_d_positive_eim_tiebreak_and_budget():
     f = _frame()
     sel = select_policy_d(f, 10, budget=None)

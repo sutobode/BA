@@ -11,7 +11,6 @@ def _train(n=100):
                          "monetary_net": [float(i * 10) for i in range(n)]})
 
 
-@todo
 def test_cutoffs_train_only():
     df = _train()
     df.loc[0, "split"] = "validation"
@@ -19,7 +18,6 @@ def test_cutoffs_train_only():
         fit_rfm_cutoffs(df)
 
 
-@todo
 def test_scores_range_and_recency_reversed():
     tr = _train()
     scored = apply_rfm_scores(tr, fit_rfm_cutoffs(tr))
@@ -30,7 +28,6 @@ def test_scores_range_and_recency_reversed():
     assert (scored["rfm_score"] == scored[["r_score", "f_score", "m_score"]].sum(axis=1)).all()
 
 
-@todo
 def test_segments_first_match_and_default(cfg):
     df = pd.DataFrame({"r_score": [5, 1, 3, 3, 1], "f_score": [5, 1, 3, 1, 1], "m_score": [5, 5, 2, 1, 1]})
     seg = assign_segments(df, cfg.raw["segmentation"]["rules"])

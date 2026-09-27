@@ -8,7 +8,6 @@ from retail_targeting.data.ingest import combine_sheets
 from retail_targeting.features.snapshots import build_snapshot, generate_t0_dates
 
 
-@todo
 def test_t0_dates_real_data_range(cfg):
     dates = generate_t0_dates(pd.Timestamp("2009-12-01 07:45"), pd.Timestamp("2011-12-09 12:50"), cfg)
     assert len(dates) == 16
@@ -21,7 +20,6 @@ def _prep(tiny_sheets, cfg):
     return build_orders(lines), lines
 
 
-@todo
 @pytest.mark.parametrize("t0, key", [("2010-02-01", "snap_2010_02_01"), ("2010-06-01", "snap_2010_06_01")])
 def test_snapshot_values(tiny_sheets, cfg, t0, key):
     orders, lines = _prep(tiny_sheets, cfg)
