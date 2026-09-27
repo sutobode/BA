@@ -36,8 +36,41 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+_ARTIFACT_FILES = {
+    "transactions_raw": ("interim_dir", "transactions_raw.parquet"),
+    "lines": ("interim_dir", "lines.parquet"),
+    "orders": ("interim_dir", "orders.parquet"),
+    "customer_snapshots": ("processed_dir", "customer_snapshots.parquet"),
+    "customer_predictions": ("tables_dir", "customer_predictions.csv"),
+    "scenario_results": ("tables_dir", "scenario_results.csv"),
+    "customer_targeting_table": ("tables_dir", "customer_targeting_table.csv"),
+}
+
+
 def _cmd_check(args: argparse.Namespace) -> int:
-    raise NotImplementedError("M2 — read artifact file and validate_frame(name)")
+    from retail_targeting.config import resolve_path
+    from retail_targeting.contracts import ContractError, validate_frame
+    from retail_targeting.io import read_csv_artifact, read_parquet
+
+    if args.artifact not in _ARTIFACT_FILES:
+        print(f"unknown artifact; choose from {sorted(_ARTIFACT_FILES)}", file=sys.stderr)
+        return 2
+    cfg = load_config(args.config)
+    key, name = _ARTIFACT_FILES[args.artifact]
+    path = resolve_path(cfg, key) / name
+    df = read_parquet(path) if name.endswith(".parquet") else read_csv_artifact(path)
+    if args.artifact == "customer_targeting_table":
+        df["value_is_fallback"] = df["value_is_fallback"].astype(str).str.lower().eq("true")
+        df["target_rank"] = df["target_rank"].astype("Int64")
+    if args.artifact == "scenario_results":
+        df["seed"] = df["seed"].astype("Int64")
+    try:
+        validate_frame(df, args.artifact)
+    except ContractError as exc:
+        print(f"CONTRACT FAIL: {exc}", file=sys.stderr)
+        return 1
+    print(f"CONTRACT OK: {args.artifact} ({len(df):,} rows) {path.name}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
