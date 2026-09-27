@@ -1,0 +1,96 @@
+# project_config.example.yaml — Topic 1 (schema: docs/code_specification_topic1.md §4)
+# Copy thành project_config.yaml. Giá trị null ở simulation.scenarios phải freeze theo D10/D11
+# trước khi chạy stage simulate. Không dùng giá trị ở đây như kết quả thực tế.
+
+project:
+  name: customer_value_promotion_targeting
+  official_duration_weeks: 6
+  random_seed: 42
+
+paths:
+  raw_dir: data/raw
+  interim_dir: data/interim
+  processed_dir: data/processed
+  tables_dir: outputs/tables
+  figures_dir: outputs/figures
+  models_dir: outputs/models
+  reports_dir: outputs/reports
+
+source:                       # D02 (verified 2026-09-27), D03
+  name: "UCI Machine Learning Repository - Online Retail II"
+  url: "https://archive.ics.uci.edu/dataset/502/online+retail+ii"
+  download_url: "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip"
+  ucimlrepo_id: 502
+  doi: "10.24432/C5CG6D"
+  license: "CC BY 4.0"
+  download_datetime: "2026-09-27T+07:00"
+  zip_filename: "online_retail_ii.zip"
+  raw_filename: "online_retail_II.xlsx"
+  sha256_zip: "572E36277C2390FBFDE10664750731E0A86F55E33470D91919085F0408E67BFB"
+  sha256_xlsx: "BCBE73B35F5B7BABF197FB0CB983A11F5D9FF929078D4AA53D171B1F2DF2E980"
+  sheets: ["Year 2009-2010", "Year 2010-2011"]
+  sheet_boundary: 2010-12-01   # D21: overlap 2010-12-01..09 xuất hiện ở cả 2 sheet
+  commit_raw_data: false
+
+cleaning:                     # CR-00..CR-12, D04, D18, D19 (data_profile_topic1.md §3-§4)
+  cancellation_prefix: "C"
+  bad_debt_prefix: "A"
+  non_product_codes: [POST, DOT, C2, C3, M, m, D, S, "BANK CHARGES", AMAZONFEE, CRUK, B, GIFT]
+  non_product_prefixes: [ADJUST, TEST, gift_]
+  winsorize_features: false
+  winsorize_quantile: null
+
+temporal:                     # D05, D06, D07
+  snapshot_cadence: monthly
+  observation_days: 180       # proposed
+  outcome_days: 90            # proposed
+  purge_days: 90
+  target_name: repeat_purchase_90d
+  train_snapshots: [2010-06-01, 2010-07-01, 2010-08-01, 2010-09-01, 2010-10-01, 2010-11-01, 2010-12-01, 2011-01-01]
+  validation_snapshots: [2011-04-01, 2011-05-01]
+  test_snapshots: [2011-08-01, 2011-09-01]
+
+segmentation:                 # D12 — rule đánh giá theo thứ tự, rule đầu khớp thắng
+  method: quintile_fit_on_train
+  n_bins: 5
+  rules:
+    - {name: "High-value active",  when: "m_score >= 4 and r_score >= 4"}
+    - {name: "High-value at risk", when: "m_score >= 4 and r_score <= 2"}
+    - {name: "Developing",         when: "r_score >= 3 and (m_score >= 3 or f_score >= 3)"}
+    - {name: "Low-value active",   when: "r_score >= 3"}
+    - {name: "Dormant",            when: "default"}
+
+model:                        # D08, D14, D22
+  type: logistic_regression
+  numeric_features: [recency_days, frequency_orders, monetary_net, aov, return_rate, tenure_days,
+                     active_months, avg_interpurchase_days, unique_products, total_units,
+                     orders_last_30d, t0_month_sin, t0_month_cos]
+  categorical_features: []
+  log1p_features: [recency_days, frequency_orders, monetary_net, aov, tenure_days,
+                   unique_products, total_units, orders_last_30d, avg_interpurchase_days]
+  C_grid: [0.01, 0.1, 1.0, 10.0]
+  class_weight_options: [null, balanced]
+  calibration: none           # none | sigmoid | isotonic — freeze tại D08
+  top_k_fractions: [0.05, 0.10, 0.20]
+
+simulation:                   # D09, D10, D11, D13, D20, D23, D24
+  value_proxy: aov
+  value_fallback: median_aov_by_segment_train
+  incremental_orders_per_horizon: 1
+  random_baseline_seeds: 100
+  capacity_fractions: [0.05, 0.10, 0.20]
+  budget: null
+  value_bases: [model_p, actual_outcome]
+  scenarios:
+    conservative: {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
+    base:         {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
+    aggressive:   {discount_rate: null, incremental_lift: null, gross_margin: null, contact_cost: null}
+  sensitivity_grid:
+    discount_rate: []         # TBD, >= 3 giá trị
+    incremental_lift: []      # TBD, >= 3 giá trị
+    capacity_fractions: [0.05, 0.10, 0.20]
+
+versions:
+  feature_version: v1
+  model_version: v0
+  scenario_version: v0

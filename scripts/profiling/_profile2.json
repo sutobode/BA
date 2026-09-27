@@ -1,0 +1,208 @@
+{
+ "overlap_rows_A,B": [
+  22523,
+  22523
+ ],
+ "overlap_invoice_sets_equal": true,
+ "overlap_multiset_equal": true,
+ "within_sheet_dups_A_B": [
+  6865,
+  5268
+ ],
+ "rows_after_overlap_rule": 1044848,
+ "within_dups_after": 11812,
+ "special_codes": [
+  [
+   "POST",
+   2086,
+   "POSTAGE",
+   1983
+  ],
+  [
+   "DOT",
+   1425,
+   "DOTCOM POSTAGE",
+   16
+  ],
+  [
+   "M",
+   1398,
+   "Manual",
+   1096
+  ],
+  [
+   "C2",
+   277,
+   "CARRIAGE",
+   254
+  ],
+  [
+   "D",
+   173,
+   "Discount",
+   170
+  ],
+  [
+   "S",
+   102,
+   "SAMPLES",
+   0
+  ],
+  [
+   "BANK CHARGES",
+   100,
+   "Bank Charges",
+   37
+  ],
+  [
+   "ADJUST",
+   67,
+   "Adjustment by john on 26/01/2010 16",
+   61
+  ],
+  [
+   "AMAZONFEE",
+   36,
+   "AMAZON FEE",
+   0
+  ],
+  [
+   "DCGS0058",
+   31,
+   "MISO PRETTY  GUM",
+   0
+  ],
+  [
+   "gift_0001_20",
+   29,
+   "Dotcomgiftshop Gift Voucher \u00a320.00",
+   0
+  ],
+  [
+   "gift_0001_30",
+   29,
+   "Dotcomgiftshop Gift Voucher \u00a330.00",
+   0
+  ],
+  [
+   "DCGSSGIRL",
+   25,
+   "GIRLS PARTY BAG",
+   0
+  ],
+  [
+   "DCGSSBOY",
+   23,
+   "BOYS PARTY BAG",
+   0
+  ],
+  [
+   "PADS",
+   19,
+   "PADS TO MATCH ALL CUSHIONS",
+   19
+  ],
+  [
+   "CRUK",
+   16,
+   "CRUK Commission",
+   16
+  ],
+  [
+   "gift_0001_10",
+   16,
+   "Dotcomgiftshop Gift Voucher \u00a310.00",
+   0
+  ],
+  [
+   "TEST001",
+   15,
+   "This is a test product.",
+   15
+  ],
+  [
+   "DCGS0076",
+   14,
+   "SUNJAR LED NIGHT NIGHT LIGHT",
+   0
+  ],
+  [
+   "DCGS0003",
+   14,
+   "BOXED GLASS ASHTRAY",
+   0
+  ],
+  [
+   "gift_0001_50",
+   8,
+   "Dotcomgiftshop Gift Voucher \u00a350.00",
+   0
+  ],
+  [
+   "gift_0001_40",
+   7,
+   "Dotcomgiftshop Gift Voucher \u00a340.00",
+   0
+  ],
+  [
+   "B",
+   6,
+   "Adjust bad debt",
+   0
+  ],
+  [
+   "DCGS0069",
+   6,
+   "OOH LA LA DOGS COLLAR",
+   0
+  ],
+  [
+   "m",
+   5,
+   "Manual",
+   0
+  ],
+  [
+   "DCGS0004",
+   5,
+   "HAYNES CAMPER SHOULDER BAG",
+   0
+  ],
+  [
+   "DCGS0066N",
+   4,
+   "NAVY CUDDLES DOG HOODIE",
+   0
+  ],
+  [
+   "gift_0001_80",
+   4,
+   "Dotcomgiftshop Gift Voucher \u00a380.00",
+   0
+  ],
+  [
+   "DCGS0072",
+   4,
+   "CAT CAMOUFLAGUE COLLAR",
+   0
+  ],
+  [
+   "ADJUST2",
+   3,
+   "Adjustment by Peter on Jun 25 2010 ",
+   3
+  ]
+ ],
+ "special_codes_count": 62,
+ "5digit_regex_all_letters_suffix_examples": [
+  "79323P",
+  "79323W",
+  "48173C",
+  "35004B",
+  "84596F"
+ ],
+ "cancel_rows_with_customer": 18390,
+ "cancel_value_with_customer": -1084812.98,
+ "positive_value_with_customer": 17374804.27,
+ "cancel_rows_before_first_purchase_or_no_purchase": 727
+}

@@ -1,0 +1,85 @@
+import numpy as np
+import pandas as pd
+import pytest
+
+from helpers import todo
+from retail_targeting.config import ConfigError
+from retail_targeting.decision.simulation import (
+    ScenarioParams, compute_eim, fit_value_fallback, scenarios_from_config, value_proxy,
+)
+
+
+def _params(**kw):
+    base = dict(name="t", discount_rate=0.1, incremental_lift=0.05, gross_margin=0.4, contact_cost=0.5)
+    base.update(kw)
+    return ScenarioParams(**base)
+
+
+def test_eim_identity_random():
+    rng = np.random.default_rng(0)
+    for _ in range(1000):
+        p = rng.random(5)
+        v = rng.uniform(1, 500, 5)
+        m = rng.uniform(0.2, 0.8)
+        prm = _params(discount_rate=rng.uniform(0, m * 0.99), incremental_lift=rng.random(), gross_margin=m,
+                      contact_cost=rng.uniform(0, 2))
+        out = compute_eim(p, v, prm)
+        closed = out["delta"] * v * m - (p + out["delta"]) * v * prm.discount_rate - prm.contact_cost
+        assert np.allclose(out["eim"], out["m1"] - out["m0"], atol=1e-9)
+        assert np.allclose(out["eim"], closed, atol=1e-9)
+        assert (out["delta"] <= 1 - p + 1e-12).all()
+
+
+def test_eim_no_offer_effect_costs_contact():
+    out = compute_eim([0.3, 0.9], [100, 50], _params(discount_rate=0.0, incremental_lift=0.0))
+    assert np.allclose(out["eim"], -0.5)
+
+
+def test_eim_hand_example():
+    # p=0.2, V=100, m=0.4, d=0.1, δ=0.05, c=0.5: 0.05*100*0.4 - 0.25*100*0.1 - 0.5 = 2 - 2.5 - 0.5 = -1.0
+    out = compute_eim([0.2], [100.0], _params())
+    assert out["eim"].iloc[0] == pytest.approx(-1.0)
+    assert out["expected_cost"].iloc[0] == pytest.approx(3.0)
+    assert out["leakage_discount"].iloc[0] == pytest.approx(2.0)
+
+
+def test_eim_delta_capped_for_certain_buyer():
+    out = compute_eim([1.0], [100.0], _params())
+    assert out["delta"].iloc[0] == 0 and out["eim"].iloc[0] == pytest.approx(-10.5)
+
+
+@pytest.mark.parametrize("kw", [dict(discount_rate=0.5), dict(incremental_lift=1.5), dict(contact_cost=-1)])
+def test_invalid_params(kw):
+    with pytest.raises(ValueError):
+        _params(**kw).validate()
+
+
+def test_invalid_inputs():
+    with pytest.raises(ValueError):
+        compute_eim([1.2], [10.0], _params())
+    with pytest.raises(ValueError):
+        compute_eim([0.2, 0.3], [10.0], _params())
+
+
+def test_scenarios_from_config(cfg, cfg_with_scenarios):
+    with pytest.raises(ConfigError):
+        scenarios_from_config(cfg)
+    names = [s.name for s in scenarios_from_config(cfg_with_scenarios)]
+    assert names == ["conservative", "base", "aggressive"]
+
+
+@todo
+def test_value_fallback_train_only():
+    df = pd.DataFrame({"split": ["train", "validation"], "customer_segment": ["A", "A"], "aov": [10.0, 20.0]})
+    with pytest.raises(ValueError):
+        fit_value_fallback(df)
+    fb = fit_value_fallback(pd.DataFrame({"split": ["train"] * 3, "customer_segment": ["A", "A", "B"],
+                                          "aov": [10.0, 30.0, -5.0]}))
+    assert fb["A"] == 20.0 and "__all__" in fb
+
+
+@todo
+def test_value_proxy_uses_fallback_for_non_positive_aov():
+    df = pd.DataFrame({"customer_segment": ["A", "B"], "aov": [12.0, -3.0]})
+    v, is_fb = value_proxy(df, {"A": 20.0, "__all__": 15.0})
+    assert list(v) == [12.0, 15.0] and list(is_fb) == [False, True]
