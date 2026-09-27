@@ -59,7 +59,9 @@ def main() -> None:  # pragma: no cover - UI
 
     with st.sidebar:
         st.header("Scenario controls")
-        scenario = st.selectbox("Scenario", ["conservative", "base", "aggressive"], index=1)
+        scen = list(dict.fromkeys(res["scenario"]))
+        scenario = st.selectbox("Scenario", scen, index=scen.index("base") if "base" in scen else 0,
+                                help="illustrative_breakeven = what the assumptions would need to be (not a plan)")
         lift = st.selectbox("Incremental-lift structure (assumption)", ["constant", "persuadable"])
         frac = st.select_slider("Campaign capacity K (% of eligible)", sorted(res["capacity_fraction"].unique()),
                                 value=0.1, format_func=lambda x: f"{x:.0%}")

@@ -77,6 +77,7 @@ simulation:                   # D09, D10, D11, D13, D20, D23, D24
   value_proxy: aov
   value_fallback: median_aov_by_segment_train
   value_cap_quantile: 0.99      # D27
+  exclude_net_negative: true    # D29: never target customers with monetary_net <= 0 (net returners)
   lift_structure: constant      # D26 Decided: primary = constant; persuadable = mandatory sensitivity (constant | persuadable | segment)
   segment_lift_multipliers:     # dùng khi lift_structure = segment (assumption)
     "High-value active": 0.5
@@ -94,6 +95,8 @@ simulation:                   # D09, D10, D11, D13, D20, D23, D24
     conservative: {discount_rate: 0.05, incremental_lift: 0.02, gross_margin: 0.40, contact_cost: 0.10}
     base:         {discount_rate: 0.10, incremental_lift: 0.05, gross_margin: 0.40, contact_cost: 0.10}
     aggressive:   {discount_rate: 0.20, incremental_lift: 0.10, gross_margin: 0.40, contact_cost: 0.10}
+    # D30: illustrative 'what it would take' case, taken from the sensitivity grid (NOT a planning scenario)
+    illustrative_breakeven: {discount_rate: 0.05, incremental_lift: 0.10, gross_margin: 0.40, contact_cost: 0.10}
   sensitivity_grid:
     discount_rate: [0.05, 0.10, 0.15, 0.20]
     incremental_lift: [0.02, 0.05, 0.10, 0.15, 0.20]

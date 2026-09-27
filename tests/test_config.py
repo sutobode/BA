@@ -41,7 +41,7 @@ def _mutate(raw, fn):
     (lambda r: r["model"]["numeric_features"].append("repeat_purchase_90d"), "forbidden"),
     (lambda r: r["model"]["numeric_features"].append("label_future_value_90d"), "forbidden"),
     (lambda r: r["model"].update(log1p_features=["not_a_feature"]), "log1p_features"),
-    (lambda r: r["simulation"]["scenarios"].pop("base"), "at least 3"),
+    (lambda r: [r["simulation"]["scenarios"].pop(k) for k in ("base", "illustrative_breakeven")], "at least 3"),
     (lambda r: r["source"].update(sha256_xlsx="abc"), "sha256_xlsx"),
     (lambda r: r["simulation"].update(lift_structure="magic"), "lift_structure"),
     (lambda r: r["simulation"].update(value_cap_quantile=1.5), "value_cap_quantile"),

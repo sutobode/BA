@@ -245,6 +245,11 @@ def _scored_frame(cfg: Config, split: str) -> pd.DataFrame:
     cap = fit_value_cap(train, cfg.raw["simulation"].get("value_cap_quantile"))
     s = snaps[snaps["split"] == split].merge(
         pred[["customer_id", "decision_date", "predicted_repeat_probability"]], on=["customer_id", "decision_date"])
+    if cfg.raw["simulation"].get("exclude_net_negative", False):
+        # D29 guardrail: customers whose returns/cancellations exceed purchases are never promotion targets
+        n0 = len(s)
+        s = s[s["monetary_net"] > 0].reset_index(drop=True)
+        log.info("D29: excluded %d net-negative customer-snapshots from the targeting population", n0 - len(s))
     value, is_fb = value_proxy(s, fallback, cap)
     uncapped, _ = value_proxy(s, fallback, None)
     target = cfg.raw["temporal"]["target_name"]

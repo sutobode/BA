@@ -48,6 +48,8 @@
 | D26 | Cấu trúc incremental lift + Policy E | **Decided:** primary `constant`; `persuadable` là sensitivity **bắt buộc**; thêm Policy E (lowest-p). Với tham số D10/D11, `persuadable` cho EIM ≤ 0 mọi p (lift tối đa δ < ngưỡng hòa vốn) → đây là kết quả phải báo cáo, không phải lỗi | Decided 2026-09-27 | Tính p-range §2b | — | M3 | Done |
 | D27 | Cap value proxy | `V_i = min(V_i, quantile 0.99 AOV train)`; báo cáo EIM share top 1% + sensitivity không cap | Decided (review v1 R-02) | UCI: nhiều wholesaler | Vài khách chi phối EIM | M3 | Done |
 | D28 | Nguồn chuẩn tài liệu | SPEC = nghiệp vụ/phương pháp; Code Spec = tên cột/kiểu/hàm/đường dẫn; khác biệt phải ghi decision log | Decided | review v1 R-04..R-08 | Lệch schema | ALL | Done |
+| D29 | Guardrail net-negative | Loại khách có monetary_net ≤ 0 (trả/huỷ nhiều hơn mua) khỏi population được target cho **mọi** policy (`simulation.exclude_net_negative`) | Decided 2026-09-27 (post-test, báo cáo cả hai kết quả) | Trên test, 4/4 khách D chọn là net-returner dùng value fallback (`outputs/tables/pre_D29/`) | D thưởng cho khách trả hàng | M3 | Done |
+| D30 | Scenario minh hoạ | Thêm `illustrative_breakeven` (d = 0.05, δ = 0.10 — một điểm có sẵn trong sensitivity grid) để actionable view cho thấy **điều kiện cần** để targeting có lãi. Không phải scenario kế hoạch; không dùng để chọn model | Decided 2026-09-27 (post-test, chỉ để trình bày) | 3 scenario chính: D không target ai sau D29 | Dashboard không có ví dụ hành động | M3 | Done |
 | D20 | Number of incremental orders per horizon | Giả định 1 order (bảo thủ) | Decided | — | EIM phóng đại nếu > 1 | M3 | W2 D5 |
 
 ## 2b. Căn cứ chốt tham số (2026-09-27)
@@ -78,5 +80,6 @@ Nguyên tắc: tham số promotion **không có trong data** (không có treatme
 | 2026-09-27 | D01–D20 | Tạo log ban đầu từ review BA.pdf, BA (1).pdf và capstone | Khởi tạo Spec v1.0 | Team |
 | 2026-09-27 | D02, D03, D07, D19 | Điền source URL (lấy từ hyperlink trong CAP), license CC BY 4.0, checksum; split cụ thể theo coverage của UCI; quy tắc cancellation theo UCI | Đã verify trang UCI và tải file | Team |
 | 2026-09-27 | D04, D19, D21–D24 | Chốt cleaning theo profiling thật; thêm quyết định kỹ thuật của Code Spec | `data_profile_topic1.md` | Team |
+| 2026-09-27 | D29 | Guardrail net-negative sau khi xem test; kết quả trước giữ ở outputs/tables/pre_D29 | Khách D chọn đều là net-returner | Team |
 | 2026-09-27 | D08, D10, D11, D14, D16, D22, D26 | Chốt theo benchmark + data (§2b) | Yêu cầu user: tự chốt theo chuẩn | Team |
 | 2026-09-27 | D10, D11, D25–D28 | Review v1: đề xuất giá trị scenario; calibration protocol; lift structure + Policy E; cap value; nguồn chuẩn tài liệu | `review_v1_topic1.md` | Team |
